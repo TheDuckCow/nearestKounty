@@ -1,5 +1,5 @@
 
-public class RTree {
+public class RTree implements Accessor{
 
 	public static void main(String [] args){
 		

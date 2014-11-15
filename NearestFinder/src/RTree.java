@@ -15,7 +15,7 @@ public class RTree implements Accessor{
         String title;
     }
 
-    private class Bound {
+    public class Bound {
         double low_lon;
         double high_lon;
         double low_lat;
@@ -117,16 +117,42 @@ public class RTree implements Accessor{
             LeafNode leaf = ((LeafNode)node);
         } else {
             //It is a nav. node
-            RNode leaf = ((RNode)node);
+            RNode rnode = ((RNode)node);
+            //Finding seed
+            Node highest_low_lon = rnode.nodes.get(0);
+            Node lowest_high_lon = rnode.nodes.get(0);
+            Node highest_low_lat = rnode.nodes.get(0);
+            Node lowest_high_lat = rnode.nodes.get(0);
+            for (int i = 0; i < rnode.nodes.size(); i++ ) {
+                Node temp = rnode.nodes.get(i);
+                Bound bound = temp.bound;
 
+                //along longitude
+                if (bound.low_lon > highest_low_lon.bound.low_lon) {
+                    highest_low_lon = temp;
+                } else if (bound.high_lon < lowest_high_lon.bound.high_lon) {
+                    lowest_high_lon = temp;
+                }
+
+                //along latitude
+                if (bound.low_lat > highest_low_lat.bound.low_lat) {
+                    highest_low_lat = temp;
+                } else if (bound.high_lat < lowest_high_lat.bound.high_lat) {
+                    lowest_high_lat = temp;
+                }
+            }
+            //Find normalized separation
+            double lon_sep_norm = (lowest_high_lon.bound.high_lon - highest_low_lon.bound.low_lon) / (rnode.bound.high_lon - rnode.bound.low_lon);
+            double lat_sep_norm = (lowest_high_lat.bound.high_lat - highest_low_lat.bound.low_lat) / (rnode.bound.high_lat - rnode.bound.low_lat);
+
+            //Get the two seeds
+            Node seed1 = (lon_sep_norm > lat_sep_norm) ? highest_low_lon : highest_low_lat;
+            Node seed2 = (lon_sep_norm > lat_sep_norm) ? lowest_high_lon : lowest_high_lat;
         }
-
-
     }
 
 	@Override
-	public ArrayList<County> getLocationsAtCoord(double lon, double lat,
-			double radius) {
+	public ArrayList<County> getLocationsInBound(Bound bound) {
 		return null;
 	}
 

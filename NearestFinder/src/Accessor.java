@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 public interface Accessor {
 
-	public ArrayList<RTree.County> getLocationsAtCoord(double lon, double lat, double radius);
+	public ArrayList<RTree.County> getLocationsInBound(RTree.Bound bound);
 
 	public ArrayList<RTree.County> getLocationsAtCounty(RTree.County County, double radius);
 

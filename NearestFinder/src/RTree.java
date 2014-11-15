@@ -4,42 +4,52 @@ import java.util.ArrayList;
 
 public class RTree implements Accessor{
 
+    final int M = 3;
+
 	public class Node {
-		
+
 		double lon;
 		double lat;
-		
+
+        boolean isLeafNode = true;
+
 	}
-	
+
+    public class County {
+
+
+    }
+
 	public static void main(String [] args){
-		
+
 		System.out.println("Hello World");
-	
+
 	}
 
 	@Override
-	public ArrayList<Node> getLocationsAtCoord(double lon, double lat,
+	public ArrayList<County> getLocationsAtCoord(double lon, double lat,
 			double radius) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public ArrayList<Node> getLocationsAtNode(Node node, double radius) {
+	public ArrayList<County> getLocationsAtCounty(County county, double radius) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public ArrayList<Node> getNearestKLocationsAtCoord(double lon, double lat,
+	public ArrayList<County> getNearestKLocationsAtCoord(double lon, double lat,
 			int k) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public ArrayList<Node> getNearestKLocationsAtNode(Node node, int k) {
+	public ArrayList<County> getNearestKLocationsAtCounty(County node, int k) {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 }

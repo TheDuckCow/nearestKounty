@@ -267,8 +267,59 @@ public class RTree implements Accessor{
     }
 
 	@Override
-	public ArrayList<County> getLocationsInBound(Bound bound) {
-		return null;
+	public ArrayList<County> getLocationsInBound(Node root, Bound mybound) 
+	{
+		ArrayList<County> nearbycounties = new ArrayList<County>();
+		Node current = root;
+
+		if (current instanceof LeafNode)
+		{
+			LeafNode leaf = (LeafNode)current;
+			for (County l : leaf.counties)
+			{
+				if (isWithinBound(mybound,l))
+				{
+					nearbycounties.add(l);
+				}
+			}
+		}
+		else
+		{
+			RNode rnode = (RNode)current;
+			ArrayList<Node> children = rnode.nodes;
+			for (int i = 0; i < children.size(); i++)
+			{
+				if (isWithinBound(mybound,children.get(i).bound))	//still gotta write the intersection function
+				{
+					//nearbycounties = nearbycounties (INTERSECTION) 
+					//					getLocationsInBound(children.get(i),mybound)
+				}
+			}
+		}
+		
+		return nearbycounties;
+	}
+	
+	//checks if bounding rectangle is overlapping with rectangle mybound
+	public boolean isWithinBound(Bound mybound, Bound nodebound)
+	{
+		if (mybound.low_lon < nodebound.high_lon && mybound.high_lon > nodebound.low_lon &&
+			mybound.high_lat > nodebound.low_lat && mybound.low_lat < nodebound.high_lat)
+		{
+			return true;
+		}
+		return false;
+	}
+	
+	//checks if a county coordinate is within rectangle mybound
+	public boolean isWithinBound(Bound mybound, County county)
+	{
+		if (county.lon < mybound.high_lon && county.lon > mybound.low_lon &&
+			county.lat < mybound.high_lat && county.lat > mybound.low_lat)
+		{
+			return true;
+		}
+		return false;
 	}
 
 	@Override

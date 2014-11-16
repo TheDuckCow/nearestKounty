@@ -20,7 +20,18 @@ public class RTree implements Accessor{
         double high_lon;
         double low_lat;
         double high_lat;
-
+        public Bound(double low_lon, double high_lon, double low_lat, double high_lat) {
+            low_lon = low_lon;
+            high_lon = high_lon;
+            low_lat = low_lat;
+            high_lon = high_lon;
+        }
+        public Bound(Bound b) {
+            low_lon = b.low_lon;
+            high_lon = b.high_lon;
+            low_lat = b.low_lat;
+            high_lon = b.high_lon;
+        }
         public double area(){
             return (high_lon - low_lon) * (high_lat - low_lat);
         }
@@ -45,8 +56,7 @@ public class RTree implements Accessor{
     }
 
     public void insertCounty(County county) {
-
-
+        //TODO
     }
 
     private void insertCountyIntoNode(County county, Node node, Node parent) {
@@ -54,9 +64,8 @@ public class RTree implements Accessor{
             LeafNode leaf = ((LeafNode)node);
             if (node.size() == M) {
                 //If current leaf node is full
-                //Split, add new node to parent
-
-
+                leaf.counties.add(county);
+                parent.nodes.add(splitNode(node));
             } else {
                 //If leaf node is not full, add to list of counties in leafnode
                 leaf.counties.add(county);
@@ -65,23 +74,48 @@ public class RTree implements Accessor{
             }
         } else {
             //It is a nav. node
-            RNode leaf = ((RNode)node);
+            RNode rnode = ((RNode)node);
             //Update Bound, Fix itself
+            Node chosen = chooseSubtree(county, rnode);
+            insertCountyIntoNode(county, chosen, chosen);
+            if (node.size() > M) {
+                if (parent == null) {
+                    // ROOT NODE
+                    //TODO
 
+                } else {
+                    parent.nodes.add(splitNode(node));
+                }
+            }
         }
     }
 
     private Bound newBoundWithCounty(County county, Bound oldBound) {
         //Updated bound with added county
-        if (county.lon > oldBound.high_lon)
-            oldBound.high_lon = county.lon;
-        else if (county.lon < oldBound.low_lon)
-            oldBound.low_lon = county.lon;
-        if (county.lat > oldBound.high_lat)
-            oldBound.high_lat = county.lat;
-        else if (county.lat < oldBound.low_lat)
-            oldBound.low_lat = county.lat;
-        return oldBound;
+        Bound result = new Bound(oldBound.low_lon, oldBound.high_lon, oldBound.low_lat, oldBound.high_lat);
+        if (county.lon > result.high_lon)
+            result.high_lon = county.lon;
+        else if (county.lon < result.low_lon)
+            result.low_lon = county.lon;
+        if (county.lat > result.high_lat)
+            result.high_lat = county.lat;
+        else if (county.lat < result.low_lat)
+            result.low_lat = county.lat;
+        return result;
+    }
+
+    private Bound newBoundWithBound(Bound bound, Bound oldBound) {
+        //Updated bound with added bound
+        Bound result = new Bound(oldBound.low_lon, oldBound.high_lon, oldBound.low_lat, oldBound.high_lat);
+        if (bound.high_lon > result.high_lon)
+            result.high_lon = bound.high_lon;
+        else if (bound.low_lon < result.low_lon)
+            result.low_lon = bound.low_lon;
+        if (bound.high_lat > result.high_lat)
+            result.high_lat = bound.high_lat;
+        else if (bound.low_lat < result.low_lat)
+            result.low_lat = bound.low_lat;
+        return result;
     }
 
     private Node chooseSubtree(County county, RNode node) {
@@ -115,40 +149,120 @@ public class RTree implements Accessor{
 
         if (node instanceof LeafNode) {
             LeafNode leaf = ((LeafNode)node);
+            //TODO
+            //Spliting leaf nodes
         } else {
             //It is a nav. node
             RNode rnode = ((RNode)node);
-            //Finding seed
-            Node highest_low_lon = rnode.nodes.get(0);
-            Node lowest_high_lon = rnode.nodes.get(0);
-            Node highest_low_lat = rnode.nodes.get(0);
-            Node lowest_high_lat = rnode.nodes.get(0);
-            for (int i = 0; i < rnode.nodes.size(); i++ ) {
-                Node temp = rnode.nodes.get(i);
-                Bound bound = temp.bound;
 
-                //along longitude
-                if (bound.low_lon > highest_low_lon.bound.low_lon) {
-                    highest_low_lon = temp;
-                } else if (bound.high_lon < lowest_high_lon.bound.high_lon) {
-                    lowest_high_lon = temp;
+            ArrayList<Node> subNodes = rnode.nodes;
+
+            //Temporary storing the arrays
+            ArrayList<Node> temp = new ArrayList<Node>();
+            //Moving everything to temp array
+            for (Node n : subNodes) {
+                temp.add(n);
+            }
+            subNodes.clear();
+
+            ArrayList<Node> seeds = pickLinearSeed(temp);
+            Node seed1 = seeds.get(0);
+            Node seed2 = seeds.get(1);
+
+
+            //New array to be returned
+            RNode newNode = new RNode();
+            ArrayList<Node> newSubNodes = newNode.nodes;
+
+            //Remove seeds from temp
+            temp.remove(seed1);
+            temp.remove(seed2);
+
+            //Adding seeds
+            subNodes.add(seed1);
+            rnode.bound = new Bound(seed1.bound);
+            newSubNodes.add(seed2);
+            newNode.bound = new Bound(seed2.bound);
+
+            //Adding remaining nodes to the split
+            while (subNodes.size() < (M - m + 1) || newSubNodes.size() < (M - m +1) ) {
+                Node nodeToAdd = temp.get(0);
+                ArrayList<Node> groupToAddTo = subNodes;
+                double maximum_diff = 0;
+                //Find which one to add
+                for(Node n: temp) {
+                    double difference_from_group_1 = newBoundWithBound(n.bound, rnode.bound).size() - rnode.bound.size();
+                    double difference_from_group_2 = newBoundWithBound(n.bound, newNode.bound).size() - newNode.bound.size();
+                    double relative_diff = abs(difference_from_group_1 - difference_from_group_2);
+
+                    if (relative_diff > maximum_diff) {
+                        maximum_diff = relative_diff;
+                        nodeToAdd = n;
+                        if (difference_from_group_1 > difference_from_group_2) {
+                            groupToAddTo = newNode;
+                        } else {
+                            groupToAddTo = rnode;
+                        }
+                    }
                 }
-
-                //along latitude
-                if (bound.low_lat > highest_low_lat.bound.low_lat) {
-                    highest_low_lat = temp;
-                } else if (bound.high_lat < lowest_high_lat.bound.high_lat) {
-                    lowest_high_lat = temp;
+                //Actually adding
+                groupToAddTo.nodes.add(nodeToAdd);
+                groupToAddTo.bound = newBoundWithBound(nodeToAdd.bound, groupToAddTo.bound);
+                temp.remove(nodeToAdd);
+            }
+            if(rnode.size() == (M - m + 1)) {
+                for(Node i : temp){
+                    newSubNodes.add(i);
+                    newSubNodes.bound = newBoundWithBound(i.bound, newSubNodes.bound);
+                }
+            } else {
+                for(Node i : temp){
+                    rnode.add(i);
+                    rnode.bound = newBoundWithBound(i.bound, rnode.bound);
                 }
             }
-            //Find normalized separation
-            double lon_sep_norm = (lowest_high_lon.bound.high_lon - highest_low_lon.bound.low_lon) / (rnode.bound.high_lon - rnode.bound.low_lon);
-            double lat_sep_norm = (lowest_high_lat.bound.high_lat - highest_low_lat.bound.low_lat) / (rnode.bound.high_lat - rnode.bound.low_lat);
-
-            //Get the two seeds
-            Node seed1 = (lon_sep_norm > lat_sep_norm) ? highest_low_lon : highest_low_lat;
-            Node seed2 = (lon_sep_norm > lat_sep_norm) ? lowest_high_lon : lowest_high_lat;
+            return newNode;
         }
+    }
+
+    private ArrayList<Node> pickLinearSeed(ArrayList<Node> subNodes){
+    {
+        //Return two seeds
+        ArrayList<Node> result = new ArrayList<Node>();
+
+        Node highest_low_lon = subNodes.get(0);
+        Node lowest_high_lon = subNodes.get(0);
+        Node highest_low_lat = subNodes.get(0);
+        Node lowest_high_lat = subNodes.get(0);
+        for (int i = 0; i < subNodes.size(); i++ ) {
+            Node temp = subNodes.get(i);
+            Bound bound = temp.bound;
+
+            //along longitude
+            if (bound.low_lon > highest_low_lon.bound.low_lon) {
+                highest_low_lon = temp;
+            } else if (bound.high_lon < lowest_high_lon.bound.high_lon) {
+                lowest_high_lon = temp;
+            }
+
+            //along latitude
+            if (bound.low_lat > highest_low_lat.bound.low_lat) {
+                highest_low_lat = temp;
+            } else if (bound.high_lat < lowest_high_lat.bound.high_lat) {
+                lowest_high_lat = temp;
+            }
+        }
+        //Find normalized separation
+        double lon_sep_norm = (lowest_high_lon.bound.high_lon - highest_low_lon.bound.low_lon) / (rnode.bound.high_lon - rnode.bound.low_lon);
+        double lat_sep_norm = (lowest_high_lat.bound.high_lat - highest_low_lat.bound.low_lat) / (rnode.bound.high_lat - rnode.bound.low_lat);
+
+        //Get the two seeds
+        Node seed1 = (lon_sep_norm > lat_sep_norm) ? highest_low_lon : highest_low_lat;
+        Node seed2 = (lon_sep_norm > lat_sep_norm) ? lowest_high_lon : lowest_high_lat;
+
+        result.add(seed1);
+        result.add(seed2);
+        return result;
     }
 
 	@Override

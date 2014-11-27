@@ -24,7 +24,6 @@ countyMarkers.push(tmpPoint);
 
 var UICircle;
 //var genericMarker;
-var centerMarker;
 var markers = []; 	// reference container for markers
 
 // key variables
@@ -40,14 +39,21 @@ function backendSendK(){
 	console.log("Sending K: "+currentK+", at "+primaryCenter);
 	
 	// clear all values of "countyMarkers" and load in new values from backend
-	// currentK = //get updated K from backend
+	
+	// radius = //get updated radius from backend
+	
+	UICircle.setRadius(radius);
 }
 
 function backendSendRadius(){
 	console.log("Sending current radius: "+radius+", at "+primaryCenter);
 	
+	UICircle.setRadius(radius); // creates a loop!
+	//UICircle.set ('radius',radius);
+	
 	// clear all values of "countyMarkers" and load in new values from backend
-	// radius = //get updated radius from backend
+	// currentK = //get updated K from backend
+	
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -63,7 +69,14 @@ function UIControls(map) {
 	controlDiv.style.backgroundColor = 'white';
 	controlDiv.style.borderStyle = 'solid';
 	controlDiv.style.borderWidth = '1px';
-			   
+	
+	
+	// Create a label
+	var infoLabl = document.createElement('label');
+	infoLabl.innerHTML = '<b>County Finder</b><br>Click to set center or drag (center)/resize the circle or set parameters below';
+	infoLabl.setAttribute("for","infoLable");
+	
+		   
 	// Create an input field
 	var controlInput = document.createElement('input');
 	controlInput.id = "some-information";
@@ -72,29 +85,64 @@ function UIControls(map) {
 
 	// Create a label
 	var controlLabel = document.createElement('label');
-	controlLabel.innerHTML = 'Find nearest k counties, k=';
+	controlLabel.innerHTML = '<br>Find nearest k counties, k=';
 	controlLabel.setAttribute("for","some-information");
 
 	// Create a button to send the information
 	var controlButton = document.createElement('a');
 	controlButton.innerHTML = ' Press to set K!';
+	
+	
+	// second row!
+	// Create an input field
+	var controlInputR = document.createElement('input');
+	controlInputR.id = "radius-information";
+	controlInputR.name = "radius-information";
+	controlInputR.value = radius;
+
+	// Create a label
+	var controlLabelR = document.createElement('label');
+	controlLabelR.innerHTML = '<br>Radius, r(meters)=';
+	controlLabelR.setAttribute("for","radius-information");
+
+	// Create a button to send the information
+	var controlButtonR = document.createElement('a');
+	controlButtonR.innerHTML = ' Press to set Radius!';
+
 
 	// Append everything to the wrapper div
+	controlDiv.appendChild(infoLabl);
 	controlDiv.appendChild(controlLabel);
 	controlDiv.appendChild(controlInput);
 	controlDiv.appendChild(controlButton);
+	controlDiv.appendChild(controlLabelR);
+	controlDiv.appendChild(controlInputR);
+	controlDiv.appendChild(controlButtonR);
 	
 	// ie when you click on "send it" in the top right corner
-	var onClick = function() {
+	var onClickK = function() {
 		currentK=controlInput.value;
-		console.log('Setting new k value of '+currentK);
+		console.log('BUTTON: Setting new k value of '+currentK);
 		
 		// pass to back-end stuff here?
 		backendSendK();
   		drawCities(map);
 		
 	};
-	google.maps.event.addDomListener(controlButton, 'click', onClick);
+	google.maps.event.addDomListener(controlButton, 'click', onClickK);
+	
+	// ie when you click on "send it" in the top right corner
+	var onClickR = function() {
+		radius=Number(controlInputR.value);
+		console.log('BUTTON: Setting new radius value: '+radius);
+		
+		// pass to back-end stuff here?
+		backendSendRadius();
+  		drawCities(map);
+		
+	};
+	
+	google.maps.event.addDomListener(controlButtonR, 'click', onClickR);
 	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDiv);
 	
 	
@@ -150,22 +198,16 @@ function UIControls(map) {
   
   
   */
-  
-
-}
-
-function UInearestK(div){
-	console.log('HELLO?');
 }
 
 
+// function for refreshing the page with new markers, only one to drop markers
 function drawCities(map){
   // first, delete ALL markers
   for (var i = 0; i < markers.length; i++) {
     markers[i].setMap(null);
   }
   markers = [];
-  
   
   // then, draw all the new ones
   for (var county in countyMarkers){
@@ -190,10 +232,7 @@ function drawCities(map){
 	  this.info.open(map, genericMarker);
 	  genericMarker.info.position = this.position;  // doesn't work....
 	});
-    
-    
   }
-
 }
 
 
@@ -290,16 +329,18 @@ function initialize() {
   // LISTENERS
   
   google.maps.event.addListener(UICircle, 'radius_changed', function() {
-  	console.log(UICircle.getRadius());
-  	radius = UICircle.getRadius();
-  	// pass to back-end stuff here?
-  	backendSendRadius();
-  	drawCities(map);
+  	if (radius != UICircle.getRadius()){
+  		radius = UICircle.getRadius();
+  	
+  		// pass to back-end stuff here?
+  		backendSendRadius();
+  		drawCities(map);
+  	}
   });
+  
   
 	google.maps.event.addListener(UICircle, 'center_changed', function() {
 	primaryCenter = UICircle.center;
-  	console.log(UICircle.getCenter());
   	
   	// pass to back-end stuff here?
   	backendSendRadius();

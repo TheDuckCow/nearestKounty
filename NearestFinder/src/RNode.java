@@ -7,9 +7,15 @@ public class RNode extends Node{
     }
     public void addNode(Node inNode){
         nodes.add(inNode);
+        updateBoundWithNewNode(inNode);
+    }
+
+    public void updateBoundWithNewNode(Node inNode) {
         if (bound == null) {
             bound = inNode.bound;
         } else
             bound = Bound.newBoundWithNode(inNode, bound);
+
+
     }
 }

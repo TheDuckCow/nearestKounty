@@ -2,9 +2,7 @@ import java.util.ArrayList;
 
 public interface Accessor {
 
-	public ArrayList<County> getLocationsInBound(Node root, Bound mybound);
-
-	public boolean isWithinBound(Bound mybound, Bound nodebound);
+	public ArrayList<County> getLocationsInBound(Bound mybound);
 
 	public ArrayList<County> getLocationsAtCounty(County County, double radius);
 

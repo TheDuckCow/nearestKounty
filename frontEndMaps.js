@@ -23,15 +23,32 @@ countyMarkers.push(tmpPoint);
 
 
 var UICircle;
-var genericMarker;
+//var genericMarker;
 var centerMarker;
 var markers = []; 	// reference container for markers
 
 // key variables
 var primaryCenter;	// long/lat of center of circle
-var currentK;		// current "k" closest"
-var radius;			// radius of the circle
-var infowindow;
+var currentK = 20;		// current "k" closest"
+var radius = 500000;			// radius of the circle
+//var infowindow;
+
+
+///////////////////////////////////////////////////////////////////////////
+// BACKEND stuff
+function backendSendK(){
+	console.log("Sending K: "+currentK+", at "+primaryCenter);
+	
+	// clear all values of "countyMarkers" and load in new values from backend
+	// currentK = //get updated K from backend
+}
+
+function backendSendRadius(){
+	console.log("Sending current radius: "+radius+", at "+primaryCenter);
+	
+	// clear all values of "countyMarkers" and load in new values from backend
+	// radius = //get updated radius from backend
+}
 
 ///////////////////////////////////////////////////////////////////////////
 // UI button setup
@@ -51,7 +68,7 @@ function UIControls(map) {
 	var controlInput = document.createElement('input');
 	controlInput.id = "some-information";
 	controlInput.name = "some-information";
-	controlInput.value = 1;
+	controlInput.value = currentK;
 
 	// Create a label
 	var controlLabel = document.createElement('label');
@@ -60,16 +77,22 @@ function UIControls(map) {
 
 	// Create a button to send the information
 	var controlButton = document.createElement('a');
-	controlButton.innerHTML = 'Send it!';
+	controlButton.innerHTML = ' Press to set K!';
 
 	// Append everything to the wrapper div
 	controlDiv.appendChild(controlLabel);
 	controlDiv.appendChild(controlInput);
 	controlDiv.appendChild(controlButton);
-
+	
+	// ie when you click on "send it" in the top right corner
 	var onClick = function() {
-		var inputvalue = $("#some-information").val();
-		alert("You entered: '" + inputvalue + "', map center is at " + map.getCenter());
+		currentK=controlInput.value;
+		console.log('Setting new k value of '+currentK);
+		
+		// pass to back-end stuff here?
+		backendSendK();
+  		drawCities(map);
+		
 	};
 	google.maps.event.addDomListener(controlButton, 'click', onClick);
 	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDiv);
@@ -92,9 +115,6 @@ function UIControls(map) {
   var myControl = UInearestK(controlDiv2)
   
   map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDiv2);
-  
-  
-  
   
   
   // SETUP for the text "Find nearest {integer, 0-999}"
@@ -140,7 +160,7 @@ function UInearestK(div){
 
 
 function drawCities(map){
-  // first, delete ALL markets
+  // first, delete ALL markers
   for (var i = 0; i < markers.length; i++) {
     markers[i].setMap(null);
   }
@@ -150,23 +170,27 @@ function drawCities(map){
   // then, draw all the new ones
   for (var county in countyMarkers){
   
-  	data = countyMarkers[county].zipcode + "<br /><br /><hr />Coordinate: " + countyMarkers[county].center;
+  	data = "<b>"+countyMarkers[county].zipcode + "</b><hr/>Coordinate: " + countyMarkers[county].center+"<br>Name: "+countyMarkers[county].name;
   	var markerOptions = {
   		map: map,
       	//icon: 'images/markerGreen.png',
       	//draggable:true,
       	position: countyMarkers[county].center,
-      	data: data
+      	data: data,
+      	clickable: true
     };
-    genericMarker = new google.maps.Marker(markerOptions);
+    var genericMarker = new google.maps.Marker(markerOptions);
     markers.push(genericMarker);
     
-    // add listener for each pin
-    
-    // Listen for click event   // currently just does on the first one..
-	google.maps.event.addListener(genericMarker, 'click', function() { 
-		onItemClick(event, genericMarker, map); 
+    genericMarker.info = new google.maps.InfoWindow({
+	  content: data
 	});
+
+	google.maps.event.addListener(genericMarker, 'click', function() {
+	  this.info.open(map, genericMarker);
+	  genericMarker.info.position = this.position;  // doesn't work....
+	});
+    
     
   }
 
@@ -257,7 +281,7 @@ function initialize() {
       fillOpacity: 0.35,
       map: map,
       center: primaryCenter, //LatLng object
-      radius: 500000, // in meters
+      radius: radius, // in meters
       editable: true
     };
   UICircle = new google.maps.Circle(circleOptions)
@@ -267,8 +291,10 @@ function initialize() {
   
   google.maps.event.addListener(UICircle, 'radius_changed', function() {
   	console.log(UICircle.getRadius());
+  	radius = UICircle.getRadius();
   	// pass to back-end stuff here?
-  	drawCities(map)
+  	backendSendRadius();
+  	drawCities(map);
   });
   
 	google.maps.event.addListener(UICircle, 'center_changed', function() {
@@ -276,7 +302,8 @@ function initialize() {
   	console.log(UICircle.getCenter());
   	
   	// pass to back-end stuff here?
-  	drawCities(map)
+  	backendSendRadius();
+  	drawCities(map);
   });
   
   

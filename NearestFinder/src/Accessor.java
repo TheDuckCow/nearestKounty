@@ -2,13 +2,13 @@ import java.util.ArrayList;
 
 public interface Accessor {
 
-	public ArrayList<RTree.County> getLocationsInBound(RTree.Node root, RTree.Bound mybound);
+	public ArrayList<County> getLocationsInBound(Node root, Bound mybound);
 
 	public boolean isWithinBound(Bound mybound, Bound nodebound);
-	
-	public ArrayList<RTree.County> getLocationsAtCounty(RTree.County County, double radius);
 
-	public ArrayList<RTree.County> getNearestKLocationsAtCoord(double lon, double lat, int k);
+	public ArrayList<County> getLocationsAtCounty(County County, double radius);
 
-	public ArrayList<RTree.County> getNearestKLocationsAtCounty(RTree.County county, int k);
+	public ArrayList<County> getNearestKLocationsAtCoord(double lon, double lat, int k);
+
+	public ArrayList<County> getNearestKLocationsAtCounty(County county, int k);
 }

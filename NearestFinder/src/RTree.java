@@ -1,119 +1,58 @@
 import java.util.ArrayList;
 
 
-
 public class RTree implements Accessor{
 
     final int m = 2;
     final int M = 4;
-    Node root;
+    private RNode root = new RNode();;
 
-
-    public class Bound {
-        double low_lon;
-        double high_lon;
-        double low_lat;
-        double high_lat;
-        public Bound(double low_lon, double high_lon, double low_lat, double high_lat) {
-            low_lon = low_lon;
-            high_lon = high_lon;
-            low_lat = low_lat;
-            high_lon = high_lon;
-        }
-        public Bound(Bound b) {
-            low_lon = b.low_lon;
-            high_lon = b.high_lon;
-            low_lat = b.low_lat;
-            high_lon = b.high_lon;
-        }
-        public double area(){
-            return (high_lon - low_lon) * (high_lat - low_lat);
-        }
-    }
-
-    private abstract class Node {
-        Bound bound;
-        public abstract int size();
-        public ArrayList<Node> nodes;
-    }
-	private class RNode extends Node{
-        ArrayList<Node> nodes = new ArrayList<Node>();
-        public int size(){
-            return nodes.size();
-        }
-	}
-
-    private class LeafNode extends Node{
-        ArrayList<Node> nodes = new ArrayList<Node>();
-        public int size(){
-            return nodes.size();
-        }
-    }
-
-    public class County extends Node{
-        //Class representing an actual county
-		double lon;
-		double lat;
-        String title;
-        public County (double lon, double lat, String title) {
-            bound = new Bound(lon, lon, lat, lat);
-            title = title;
-        }
-        public int size() { return 0;}
-    }
 
     public void insertCounty(County county) {
-        //TODO
+        insertCountyIntoNode(county, root, null);
     }
 
-    private void insertCountyIntoNode(County county, Node node, Node parent) {
-        if (node instanceof LeafNode) {
-            LeafNode leaf = ((LeafNode)node);
+    private void insertCountyIntoNode(County inCounty, Node inNode, RNode inParent) {
+        assert (inNode instanceof RNode);
+        RNode node = ((RNode)inNode);
+        if (node.size() == 0){
+            node.addNode(inCounty);
+            return;
+        }
+
+        if (node.nodes.get(0) instanceof County) {
+            //Leaf node
             if (node.size() == M) {
                 //If current leaf node is full
-                leaf.nodes.add(county);
-                parent.nodes.add(splitNode(node));
+                node.addNode(inCounty);
+                inParent.nodes.add(splitNode(node));
             } else {
                 //If leaf node is not full, add to list of counties in leafnode
-                leaf.nodes.add(county);
-                //Update bound for leafnode
-                leaf.bound = newBoundWithNode(county, leaf.bound);
+                node.addNode(inCounty);
             }
         } else {
             //It is a nav. node
-            RNode rnode = ((RNode)node);
             //Update Bound, Fix itself
-            Node chosen = chooseSubtree(county, rnode);
-            insertCountyIntoNode(county, chosen, chosen);
+            Node chosen = chooseSubtree(inCounty, node);
+            insertCountyIntoNode(inCounty, chosen, node);
             if (node.size() > M) {
-                if (parent == null) {
+                if (inParent == null) {
                     // ROOT NODE
-                    //TODO
-
+                    RNode newNode = new RNode();
+                    newNode.bound = new Bound(root.bound);
+                    newNode.addNode(root);
+                    newNode.addNode(splitNode(root));
+                    root = newNode;
                 } else {
-                    parent.nodes.add(splitNode(node));
+                    inParent.addNode(splitNode(node));
                 }
             }
         }
     }
 
 
-    private Bound newBoundWithNode(Node node, Bound oldBound) {
-        Bound bound = node.bound;
-        //Updated bound with added bound
-        Bound result = new Bound(oldBound.low_lon, oldBound.high_lon, oldBound.low_lat, oldBound.high_lat);
-        if (bound.high_lon > result.high_lon)
-            result.high_lon = bound.high_lon;
-        else if (bound.low_lon < result.low_lon)
-            result.low_lon = bound.low_lon;
-        if (bound.high_lat > result.high_lat)
-            result.high_lat = bound.high_lat;
-        else if (bound.low_lat < result.low_lat)
-            result.low_lat = bound.low_lat;
-        return result;
-    }
-
     private Node chooseSubtree(County county, RNode node) {
+        System.out.println("Choosing subtree");
         ArrayList<Node> subNodes = node.nodes;
         if (subNodes.size() == 0){
             System.out.println("ERROR: Can't choose subtree from nothing");
@@ -122,12 +61,12 @@ public class RTree implements Accessor{
         //Keeping track of the least initial area and the least amount of growth
         Node chosen = subNodes.get(0);
         double least_area = subNodes.get(0).bound.area();
-        double least_growth = newBoundWithNode(county, subNodes.get(0).bound).area() - least_area;
+        double least_growth = Bound.newBoundWithNode(county, subNodes.get(0).bound).area() - least_area;
 
         for (int i = 1; i < subNodes.size(); i++) {
             //Update the chosen subtree with the least growth / least area if tie
             double area = subNodes.get(i).bound.area();
-            double growth = newBoundWithNode(county, subNodes.get(i).bound).area() - area;
+            double growth = Bound.newBoundWithNode(county, subNodes.get(i).bound).area() - area;
             if (growth < least_growth || (growth == least_growth && area < least_area)) {
                 chosen = subNodes.get(i);
                 least_growth = growth;
@@ -138,6 +77,7 @@ public class RTree implements Accessor{
     }
 
     private Node splitNode(Node node) {
+        System.out.println("Splitting Node");
         //Returns the new node that is split out
         if (node.size() < M)
             return null;
@@ -157,14 +97,7 @@ public class RTree implements Accessor{
         Node seed2 = seeds.get(1);
 
         //New array to be returned
-        Node newNode;
-        if (node instanceof LeafNode){
-            newNode = new LeafNode();
-        } else if (node instanceof RNode) {
-            newNode = new RNode();
-        } else {
-            System.out.println("ERROR: Split node is given non leafnode or rnode");
-        }
+        Node newNode = new RNode();;
 
         ArrayList<Node> newSubNodes = newNode.nodes;
 
@@ -185,9 +118,9 @@ public class RTree implements Accessor{
             double maximum_diff = 0;
             //Find which one to add
             for(Node n: temp) {
-                double difference_from_group_1 = newBoundWithNode(n, node.bound).area() - node.bound.area();
-                double difference_from_group_2 = newBoundWithNode(n, newNode.bound).area() - newNode.bound.area();
-                double relative_diff = abs(difference_from_group_1 - difference_from_group_2);
+                double difference_from_group_1 = Bound.newBoundWithNode(n, node.bound).area() - node.bound.area();
+                double difference_from_group_2 = Bound.newBoundWithNode(n, newNode.bound).area() - newNode.bound.area();
+                double relative_diff = Math.abs(difference_from_group_1 - difference_from_group_2);
 
                 if (relative_diff > maximum_diff) {
                     maximum_diff = relative_diff;
@@ -201,18 +134,18 @@ public class RTree implements Accessor{
             }
             //Actually adding
             groupToAddTo.nodes.add(nodeToAdd);
-            groupToAddTo.bound = newBoundWithNode(nodeToAdd, groupToAddTo.bound);
+            groupToAddTo.bound = Bound.newBoundWithNode(nodeToAdd, groupToAddTo.bound);
             temp.remove(nodeToAdd);
         }
         if(node.size() == (M - m + 1)) {
             for(Node i : temp){
                 newSubNodes.add(i);
-                newNode.bound = newBoundWithNode(i, newNode.bound);
+                newNode.bound = Bound.newBoundWithNode(i, newNode.bound);
             }
         } else {
             for(Node i : temp){
                 subNodes.add(i);
-                node.bound = newBoundWithNode(i, node.bound);
+                node.bound = Bound.newBoundWithNode(i, node.bound);
             }
         }
         return newNode;
@@ -267,39 +200,40 @@ public class RTree implements Accessor{
     }
 
 	@Override
-	public ArrayList<County> getLocationsInBound(Node root, Bound mybound) 
+	public ArrayList<County> getLocationsInBound(Node root, Bound mybound)
 	{
-		ArrayList<County> nearbycounties = new ArrayList<County>();
-		Node current = root;
+		//ArrayList<County> nearbycounties = new ArrayList<County>();
+		//Node current = root;
 
-		if (current instanceof LeafNode)
-		{
-			LeafNode leaf = (LeafNode)current;
-			for (County l : leaf.counties)
-			{
-				if (isWithinBound(mybound,l))
-				{
-					nearbycounties.add(l);
-				}
-			}
-		}
-		else
-		{
-			RNode rnode = (RNode)current;
-			ArrayList<Node> children = rnode.nodes;
-			for (int i = 0; i < children.size(); i++)
-			{
-				if (isWithinBound(mybound,children.get(i).bound))	//still gotta write the intersection function
-				{
-					//nearbycounties = nearbycounties (INTERSECTION) 
-					//					getLocationsInBound(children.get(i),mybound)
-				}
-			}
-		}
-		
-		return nearbycounties;
+		//if (current instanceof LeafNode)
+		//{
+			//LeafNode leaf = (LeafNode)current;
+			//for (County l : leaf.counties)
+			//{
+				//if (isWithinBound(mybound,l))
+				//{
+					//nearbycounties.add(l);
+				//}
+			//}
+		//}
+		//else
+		//{
+			//RNode rnode = (RNode)current;
+			//ArrayList<Node> children = rnode.nodes;
+			//for (int i = 0; i < children.size(); i++)
+			//{
+				//if (isWithinBound(mybound,children.get(i).bound))	//still gotta write the intersection function
+				//{
+					////nearbycounties = nearbycounties (INTERSECTION)
+					////					getLocationsInBound(children.get(i),mybound)
+				//}
+			//}
+		//}
+
+		//return nearbycounties;
+        return null;
 	}
-	
+
 	//checks if bounding rectangle is overlapping with rectangle mybound
 	public boolean isWithinBound(Bound mybound, Bound nodebound)
 	{
@@ -310,7 +244,7 @@ public class RTree implements Accessor{
 		}
 		return false;
 	}
-	
+
 	//checks if a county coordinate is within rectangle mybound
 	public boolean isWithinBound(Bound mybound, County county)
 	{
@@ -341,8 +275,42 @@ public class RTree implements Accessor{
 		return null;
 	}
 
+    public void printTree() {
+        printNode(root, 0);
+    }
+
 	public static void main(String [] args){
 
+        RTree tree = new RTree();
+        tree.printTree();
+        int numberToAdd = 5;
+        for( int i = 0; i < numberToAdd; i ++ ) {
+            System.out.println();
+            System.out.println("Adding: " + i);
+            County c = new County(i ,i ,"" + i);
+            tree.insertCounty(c);
+            tree.printTree();
+
+        }
 
 	}
+
+
+    public static void printNode(RNode root, int level) {
+        String indent = "";
+        for (int i = 0; i < level; i ++) {
+            indent = indent + "\t";
+        }
+        System.out.println(indent + "Size: " + root.size());
+        for (int i = 0 ; i < root.size(); i ++ ) {
+            Node temp = root.nodes.get(i);
+            if ( temp instanceof RNode) {
+                printNode((RNode)temp, level + 1);
+            } else if (temp instanceof County) {
+                County county = ((County) temp);
+                System.out.println(indent + "Point: " + county.lon + " " + county.lat + ": " + county.title);
+
+            }
+        }
+    }
 }

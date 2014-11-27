@@ -8,7 +8,7 @@ public class Bound {
         this.low_lon = low_lon;
         this.high_lon = high_lon;
         this.low_lat = low_lat;
-        this.high_lat = high_lon;
+        this.high_lat = high_lat;
     }
     public Bound(Bound b) {
         this.low_lon = b.low_lon;

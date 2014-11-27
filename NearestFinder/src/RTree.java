@@ -1,10 +1,13 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 
 
 public class RTree implements Accessor{
 
-    final int m = 2;
-    final int M = 4;
+    final int m = 50;
+    final int M = 100;
     private RNode root = new RNode();;
 
 
@@ -235,14 +238,6 @@ public class RTree implements Accessor{
         }
         else
         {
-            //for (int i = 0; i < node.size(); i++)
-            //{
-                //if (isWithinBound(mybound,children.get(i).bound))	//still gotta write the intersection function
-                //{
-                    ////nearbycounties = nearbycounties (INTERSECTION)
-                    ////					getLocationsInBound(children.get(i),mybound)
-                //}
-            //}
             for(Node n: node.nodes) {
                 RNode subNode = (RNode) n;
                 if (interceptWithBound(myBound, subNode.bound)){
@@ -259,14 +254,6 @@ public class RTree implements Accessor{
 	//checks if bounding rectangle is overlapping with rectangle mybound
 	private boolean interceptWithBound(Bound myBound, Bound nodeBound)
 	{
-        //I don't think the boolean below would do the right thing
-		//if (mybound.low_lon < nodebound.high_lon && mybound.high_lon > nodebound.low_lon &&
-			//mybound.high_lat > nodebound.low_lat && mybound.low_lat < nodebound.high_lat)
-		//{
-			//return true;
-		//}
-		//return false;
-
         //See if bounds in mybound are within bounds in nodebound
 
         //If one rectangle is to the left of the other
@@ -292,14 +279,7 @@ public class RTree implements Accessor{
     }
 
 	@Override
-	public ArrayList<County> getLocationsAtCounty(County county, double radius) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ArrayList<County> getNearestKLocationsAtCoord(double lon, double lat,
-			int k) {
+	public ArrayList<County> getLocationsAtCounty(County county, double halfSquare) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -314,26 +294,6 @@ public class RTree implements Accessor{
         printNode(root, 0);
     }
 
-	public static void main(String [] args){
-
-        RTree tree = new RTree();
-        //tree.printTree();
-        int numberToAdd = 100;
-        for( int i = 0; i < numberToAdd; i ++ ) {
-            //System.out.println();
-            //System.out.println("Adding: " + i);
-            County c = new County(i ,i ,"" + i);
-            tree.insertCounty(c);
-            //if (i > 6)
-        }
-        tree.printTree();
-        ArrayList<County> result = tree.getLocationsInBound(new Bound(32, 37, 32, 37));
-        for(County c: result) {
-            System.out.println(c);
-        }
-    }
-
-
     public static void printNode(RNode root, int level) {
         String indent = "";
         for (int i = 0; i < level; i ++) {
@@ -347,8 +307,45 @@ public class RTree implements Accessor{
             } else if (temp instanceof County) {
                 County county = ((County) temp);
                 System.out.println(indent + county);
-
             }
         }
+    }
+
+    public void readCountyFromFile(String dataFileName) throws NumberFormatException, IOException {
+
+
+        /**
+         * Creating a buffered reader to read the file
+         */
+        BufferedReader bReader = new BufferedReader(
+                new FileReader(dataFileName));
+
+        String line;
+
+        /**
+         * Looping the read block until all lines in the file are read.
+         */
+        boolean first = true;
+        while ((line = bReader.readLine()) != null) {
+            if (first) {
+                first = false;
+                continue;
+            }
+
+            /**
+             * Splitting the content of tabbed separated line
+             */
+            String datavalue[] = line.split("\t");
+            String state = datavalue[0];
+            String title = datavalue[1];
+            double lat = Double.parseDouble(datavalue[2]);
+            double lon = Double.parseDouble(datavalue[3]);
+
+            /**
+             * Printing the value read from file to the console
+             */
+            insertCounty(new County(lon, lat, title, state));
+        }
+        bReader.close();
     }
 }

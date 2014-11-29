@@ -1,3 +1,5 @@
+package nearestFinder;
+
 import java.util.ArrayList;
 
 public class RNode extends Node{

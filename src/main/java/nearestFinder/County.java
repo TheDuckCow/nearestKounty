@@ -1,3 +1,4 @@
+package nearestFinder;
 
 public class County extends Node{
     //Class representing an actual county

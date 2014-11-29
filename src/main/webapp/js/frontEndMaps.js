@@ -8,7 +8,7 @@ var tmpPoint = {
 };
 countyMarkers.push(tmpPoint);
 tmpPoint = {
-  center: new google.maps.LatLng(34.052234, -118.243684),
+  center: new google.maps.LatLng(40.7127, -74.0059),
   zipcode: 3857799,
   name:"New York"
 };
@@ -72,52 +72,60 @@ function UIControls(map) {
 	
 	
 	// Create a label
-	var infoLabl = document.createElement('label');
-	infoLabl.innerHTML = '<b>County Finder</b><br>Click to set center or drag (center)/resize the circle or set parameters below';
-	infoLabl.setAttribute("for","infoLable");
+	var infoLabel = document.createElement('label');
+	infoLabel.innerHTML = '<b>County Finder</b><br>Click the map to select the starting reference point. <br>Set the number of counties you would like returned below.<br>K reference points: ';
+	infoLabel.setAttribute("for","infoLable");
 	
 		   
-	// Create an input field
-	var controlInput = document.createElement('input');
-	controlInput.id = "some-information";
-	controlInput.name = "some-information";
-	controlInput.value = currentK;
+	// Create an dropdown list
+  var dropDownList = document.createElement('select');
+  dropDownList.setAttribute('class', 'k');
 
-	// Create a label
-	var controlLabel = document.createElement('label');
-	controlLabel.innerHTML = '<br>Find nearest k counties, k=';
-	controlLabel.setAttribute("for","some-information");
+  for(var i = 1; i < 11; i++) {
+    var opt = document.createElement("option");
+    opt.value= i;
+    opt.innerHTML = i; // whatever property it has
 
-	// Create a button to send the information
-	var controlButton = document.createElement('a');
-	controlButton.innerHTML = ' Press to set K!';
+    // then append it to the select element
+    dropDownList.appendChild(opt);
+  }
+
+
+	// // Create a label
+	// var controlLabel = document.createElement('label');
+	// controlLabel.innerHTML = '<br>Find nearest k counties, k=';
+	// controlLabel.setAttribute("for","some-information");
+
+	// // Create a button to send the information
+	// var controlButton = document.createElement('a');
+	// controlButton.innerHTML = ' Press to set K!';
 	
 	
-	// second row!
-	// Create an input field
-	var controlInputR = document.createElement('input');
-	controlInputR.id = "radius-information";
-	controlInputR.name = "radius-information";
-	controlInputR.value = radius;
+	// // second row!
+	// // Create an input field
+	// var controlInputR = document.createElement('input');
+	// controlInputR.id = "radius-information";
+	// controlInputR.name = "radius-information";
+	// controlInputR.value = radius;
 
-	// Create a label
-	var controlLabelR = document.createElement('label');
-	controlLabelR.innerHTML = '<br>Radius, r(meters)=';
-	controlLabelR.setAttribute("for","radius-information");
+	// // Create a label
+	// var controlLabelR = document.createElement('label');
+	// controlLabelR.innerHTML = '<br>Radius, r(meters)=';
+	// controlLabelR.setAttribute("for","radius-information");
 
-	// Create a button to send the information
-	var controlButtonR = document.createElement('a');
-	controlButtonR.innerHTML = ' Press to set Radius!';
+	// // Create a button to send the information
+	// var controlButtonR = document.createElement('a');
+	// controlButtonR.innerHTML = ' Press to set Radius!';
 
 
 	// Append everything to the wrapper div
-	controlDiv.appendChild(infoLabl);
-	controlDiv.appendChild(controlLabel);
-	controlDiv.appendChild(controlInput);
-	controlDiv.appendChild(controlButton);
-	controlDiv.appendChild(controlLabelR);
-	controlDiv.appendChild(controlInputR);
-	controlDiv.appendChild(controlButtonR);
+	controlDiv.appendChild(infoLabel);
+	controlDiv.appendChild(dropDownList);
+	// controlDiv.appendChild(controlInput);
+	// controlDiv.appendChild(controlButton);
+	// controlDiv.appendChild(controlLabelR);
+	// controlDiv.appendChild(controlInputR);
+	// controlDiv.appendChild(controlButtonR);
 	
 	// ie when you click on "send it" in the top right corner
 	var onClickK = function() {
@@ -129,7 +137,7 @@ function UIControls(map) {
   		drawCities(map);
 		
 	};
-	google.maps.event.addDomListener(controlButton, 'click', onClickK);
+	//google.maps.event.addDomListener(controlButton, 'click', onClickK);
 	
 	// ie when you click on "send it" in the top right corner
 	var onClickR = function() {
@@ -142,7 +150,7 @@ function UIControls(map) {
 		
 	};
 	
-	google.maps.event.addDomListener(controlButtonR, 'click', onClickR);
+	//google.maps.event.addDomListener(controlButtonR, 'click', onClickR);
 	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDiv);
 	
 	
@@ -222,16 +230,15 @@ function drawCities(map){
       	clickable: true
     };
     var genericMarker = new google.maps.Marker(markerOptions);
-    markers.push(genericMarker);
     
     genericMarker.info = new google.maps.InfoWindow({
 	  content: data
-	});
-
-	google.maps.event.addListener(genericMarker, 'click', function() {
-	  this.info.open(map, genericMarker);
-	  genericMarker.info.position = this.position;  // doesn't work....
-	});
+    });
+    
+    markers.push(genericMarker);
+    google.maps.event.addListener(genericMarker, 'click', function() {
+	this.info.open(map, this);	  
+    });
   }
 }
 
@@ -323,7 +330,21 @@ function initialize() {
       radius: radius, // in meters
       editable: true
     };
-  UICircle = new google.maps.Circle(circleOptions)
+    
+  var rectangleOptions = {
+      strokeColor: '#FF0000',
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+      fillColor: '#FF0000',
+      fillOpacity: 0.35,
+      map: map,
+      draggable: true,
+      bounds: new google.maps.LatLngBounds(
+        new google.maps.LatLng(33.685282, -116.233942),
+        new google.maps.LatLng(36.1215, -115.1739)),
+      editable: true  
+  }
+  UICircle = new google.maps.Circle(circleOptions);
   
   
   // LISTENERS

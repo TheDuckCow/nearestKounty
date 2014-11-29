@@ -1,3 +1,5 @@
+package nearestFinder;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -20,7 +22,7 @@ public class Tester {
             //System.out.println(c);
         //}
 
-        String file = "/Users/timothychong/Documents/workspace/arduino/NearestFinder/src/counties.txt";
+        String file = "counties.txt";
         try {
 			tree.readCountyFromFile(file);
 		} catch (NumberFormatException | IOException e) {

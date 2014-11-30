@@ -7,12 +7,21 @@ package api;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import nearestFinder.Bound;
+import nearestFinder.County;
+
 import org.json.JSONObject;
 import org.json.JSONArray;
+
+import com.example.Main;
+
 import test.Test;
 
 /**
@@ -43,7 +52,21 @@ public class Controller extends HttpServlet {
                     data.put("ok", Test.getNearestKLocationsAtCounty());
                     break;
                 case "/getLocationsInBound":
-                    data.put("ok", Test.getLocationsInBound());
+                    float low_lat = Float.parseFloat(request.getParameter("low_lat"));
+                    float low_long = Float.parseFloat(request.getParameter("low_long"));
+                    float high_lat = Float.parseFloat(request.getParameter("high_lat"));
+                    float high_long = Float.parseFloat(request.getParameter("high_long"));
+                    ArrayList<County> result = Main.tree.getLocationsInBound(new Bound(low_long, high_long, low_lat, high_lat));
+                    JSONArray results = new JSONArray();
+                    JSONObject temp = new JSONObject();
+                    for(County c: result) {
+                    	temp.put("long", c.lon);
+                    	temp.put("lat", c.lat);
+                    	temp.put("state", c.state);
+                    	temp.put("title", c.title);
+                    	results.put(temp);
+                    }
+                    data.put("results", results);
                     break;
                 case "/getLocationsAtCounty":
                     data.put("ok", Test.getLocationsAtCounty());

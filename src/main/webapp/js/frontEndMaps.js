@@ -263,9 +263,10 @@ function onItemClick(event, pin, map) {
 function initialize() {
   
   // SETUP of map and style
-  primaryCenter = new google.maps.LatLng(41.070719,-95.4165768);
+  //42.3581° N, 71.0636° W
+  primaryCenter = new google.maps.LatLng(42.3581,-71.0636);
   var mapOptions = {
-    zoom: 5,
+    zoom: 8,
     center: primaryCenter,
     disableDefaultUI: true,
     zoomControl: true,
@@ -340,11 +341,16 @@ function initialize() {
       map: map,
       draggable: true,
       bounds: new google.maps.LatLngBounds(
-        new google.maps.LatLng(33.685282, -116.233942),
-        new google.maps.LatLng(36.1215, -115.1739)),
+        new google.maps.LatLng(42.1581, -72.1636),
+        new google.maps.LatLng(42.4581, -71.0136)),
       editable: true  
   }
-  UICircle = new google.maps.Circle(circleOptions);
+  //42.3581° N, 71.0636° W
+  UICircle = new google.maps.Rectangle(rectangleOptions);
+  updateBounds();
+
+  // Add an event listener on the rectangle.
+  google.maps.event.addListener(UICircle, 'bounds_changed', updateBounds);
   
   
   // LISTENERS
@@ -386,8 +392,29 @@ function initialize() {
 //       map.panTo(marker.getPosition());
 //     }, 3000);
 //   });
+
+  function updateBounds(event) {
+    var ne = UICircle.getBounds().getNorthEast();
+    var sw = UICircle.getBounds().getSouthWest();
+
+    $.ajax({
+       url: "getLocationsInBound",
+       type: "GET",
+       data: {low_long : sw.lng(),
+              low_lat : sw.lat(),
+              high_long : ne.lng(),
+              high_lat : ne.lat()}, 
+       success: function(response){
+           console.log(response);
+       },
+       error: function(err){
+           console.log(err);
+       }
+    });
+  }
   
 }
+
 
 
 ///////////////////////////////////////////////////////////////////////////

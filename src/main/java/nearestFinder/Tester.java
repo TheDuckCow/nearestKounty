@@ -31,9 +31,10 @@ public class Tester {
 		}
 
         //tree.printTree();
-
+        //33.6167° N, 117.8975° W
+        //33.9481° N, 117.3961° W
         System.out.println("Searching");
-        ArrayList<County> result = tree.getLocationsInBound(new Bound(-114.7, -114.6, 45.198, 45.200));
+        ArrayList<County> result = tree.getLocationsInBound(new Bound(-117.8975, -117.3961, 33.6167, 33.9481));
         for(County c: result) {
             System.out.println(c);
         }

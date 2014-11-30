@@ -2,9 +2,9 @@ package nearestFinder;
 
 public class County extends Node{
     //Class representing an actual county
-    double lon;
-    double lat;
-    String title, state;
+    public double lon;
+    public double lat;
+    public String title, state;
     public County (double lon, double lat, String title, String state) {
         this.lon = lon;
         this.lat = lat;

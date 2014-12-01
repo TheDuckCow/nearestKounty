@@ -1,4 +1,4 @@
-package nearestFinder;
+
 
 public class Bound {
     double low_lon;
@@ -19,6 +19,18 @@ public class Bound {
     }
     public double area(){
         return (high_lon - low_lon) * (high_lat - low_lat);
+    }
+    
+    public double intersectarea(Bound bound2)
+    {
+    	//calculates the area of intersection for two MBRs
+    	return Math.max(0,Math.max(high_lon,bound2.high_lon) - Math.min(low_lon, bound2.low_lon)) * 
+    		   Math.max(0,Math.max(bound2.high_lat,bound2.high_lat)- Math.min(low_lat,bound2.low_lat));
+    }
+    public double unionarea(Bound bound2)
+    {
+    	double intersect = this.intersectarea(bound2);
+    	return this.area() + bound2.area() - intersect;
     }
 
     public String toString() {

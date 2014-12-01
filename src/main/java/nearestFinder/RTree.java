@@ -1,4 +1,3 @@
-package nearestFinder;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -286,12 +285,51 @@ public class RTree implements Accessor{
 		return null;
 	}
 
-	@Override
-	public ArrayList<County> getNearestKLocationsAtCounty(County node, int k) {
-		// TODO Auto-generated method stub
+	public ArrayList<County> getNearestKLocationsAtCounty(Node root, County county, int k) 
+	{
+		ArrayList<County> kNearest = new ArrayList<County>();
+		County leaf = ChooseLeaf(root, county.bound);
+		
+		
+		
 		return null;
 	}
 
+	public static ArrayList<County> knearestFill(ArrayList<County> knearest, County leaf, int k)
+	{
+		ArrayList<County> 
+		return null;
+	}
+	
+
+	public static County ChooseLeaf(Node root, Bound mybound)
+	{
+		//check if root is leafnode
+		if (root instanceof County)
+		{
+			County mycounty = (County)root;
+			return mycounty;
+		}
+		
+		//select children of least enlargement of its bounds when selecting leaf, done recursively
+		int j = 0;
+		double m = Double.POSITIVE_INFINITY;
+		RNode rnode = (RNode)root;
+		ArrayList<Node> children = rnode.nodes;
+		for (int i = 0; i < children.size(); i++)
+		{
+			double a = children.get(i).bound.unionarea(mybound) - children.get(i).bound.area();
+			if (a < m)
+			{
+				m = a;
+				j = i;
+			}
+		}
+		
+		return ChooseLeaf(children.get(j), mybound);
+		
+	}
+	
     public void printTree() {
         printNode(root, 0);
     }

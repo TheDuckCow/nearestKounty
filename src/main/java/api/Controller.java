@@ -56,14 +56,14 @@ public class Controller extends HttpServlet {
                     float high_lat = Float.parseFloat(request.getParameter("high_lat"));
                     float high_long = Float.parseFloat(request.getParameter("high_long"));
                     ArrayList<County> result = FileLoader.tree.getLocationsInBound(new Bound(low_long, high_long, low_lat, high_lat));
-                    JSONArray results = new JSONArray();
-                    JSONObject temp = new JSONObject();
+                    ArrayList<JSONObject> results = new ArrayList<JSONObject>();
                     for(County c: result) {
+                    	JSONObject temp = new JSONObject();
                     	temp.put("long", c.lon);
                     	temp.put("lat", c.lat);
                     	temp.put("state", c.state);
                     	temp.put("title", c.title);
-                    	results.put(temp);
+                    	results.add(temp);
                     }
                     data.put("results", results);
                     break;

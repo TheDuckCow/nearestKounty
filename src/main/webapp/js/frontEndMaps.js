@@ -217,7 +217,7 @@ function drawCities(map){
     markers[i].setMap(null);
   }
   markers = [];
-  
+  console.log(countyMarkers);
   // then, draw all the new ones
   for (var county in countyMarkers){
   
@@ -267,7 +267,7 @@ function initialize() {
   //42.3581° N, 71.0636° W
   primaryCenter = new google.maps.LatLng(42.3581,-71.0636);
   var mapOptions = {
-    zoom: 8,
+    zoom: 13,
     center: primaryCenter,
     disableDefaultUI: true,
     zoomControl: true,
@@ -342,11 +342,12 @@ function initialize() {
       map: map,
       draggable: true,
       bounds: new google.maps.LatLngBounds(
-        new google.maps.LatLng(42.1581, -72.1636),
-        new google.maps.LatLng(42.4581, -71.0136)),
+        new google.maps.LatLng(42.33809, -71.11075),
+        new google.maps.LatLng(42.3693, -71.0490931)),
       editable: true  
   }
-  //42.3581° N, 71.0636° W
+  //42.369384477704216 -71.04909316406247
+  //42.33809104009208 -71.11075423583986
   UICircle = new google.maps.Rectangle(rectangleOptions);
   updateBounds();
 
@@ -384,6 +385,15 @@ function initialize() {
     drawCities(map)
     
   });
+
+  function plot(point){
+    tmpPoint = {
+      center: new google.maps.LatLng(point['lat'], point['long']),
+      zipcode: point.title,
+      name: point.state
+    };
+    countyMarkers.push(tmpPoint);
+  }
   
   
 //   google.maps.event.addListener(map, 'center_changed', function() {
@@ -397,7 +407,8 @@ function initialize() {
   function updateBounds(event) {
     var ne = UICircle.getBounds().getNorthEast();
     var sw = UICircle.getBounds().getSouthWest();
-
+    console.log(ne.lat() + ' ' + ne.lng());
+    console.log(sw.lat() + ' ' + sw.lng());
     $.ajax({
        url: "getLocationsInBound",
        type: "GET",
@@ -406,7 +417,13 @@ function initialize() {
               high_long : ne.lng(),
               high_lat : ne.lat()}, 
        success: function(response){
-           console.log(response);
+          var point;
+          for (var i = 0; i < response.results.length; i++){
+            point = response.results[i];
+            plot(point);
+          }
+          drawCities(map);
+          console.log(response);
        },
        error: function(err){
            console.log(err);

@@ -340,7 +340,7 @@ function initialize() {
       fillColor: '#FF0000',
       fillOpacity: 0.35,
       map: map,
-      draggable: true,
+      draggable: false,
       bounds: new google.maps.LatLngBounds(
         new google.maps.LatLng(42.33809, -71.11075),
         new google.maps.LatLng(42.3693, -71.0490931)),
@@ -418,6 +418,7 @@ function initialize() {
               high_lat : ne.lat()}, 
        success: function(response){
           var point;
+          countyMarkers = [];
           for (var i = 0; i < response.results.length; i++){
             point = response.results[i];
             plot(point);

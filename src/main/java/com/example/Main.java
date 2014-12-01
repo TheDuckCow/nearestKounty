@@ -2,10 +2,11 @@ package com.example;
 
 import java.io.IOException;
 
-import nearestFinder.RTree;
-
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
+
+import api.FileLoader;
+
 
 /**
  * 
@@ -15,23 +16,12 @@ import org.eclipse.jetty.webapp.WebAppContext;
  *
  */
 public class Main {
-	public static RTree tree;
     
     /**
      * @param args
      */
     public static void main(String[] args) throws Exception{
-    	System.out.println("Reading the counties file.");
-    	// Read in the file that will be used
-        tree = new RTree();
-        String file = "counties.txt";
-        try {
-			tree.readCountyFromFile(file);
-		} catch (NumberFormatException | IOException e) {
-            System.out.println("Can't read file");
-			e.printStackTrace();
-		}
-        System.out.println("Done reading file.");
+    	FileLoader.main(args);
         System.out.println("Starting server.");
     	
         String webappDirLocation = "src/main/webapp/";
@@ -60,7 +50,10 @@ public class Main {
         server.setHandler(root);
         
         server.start();
-        server.join();   
+        
+        server.join();  
+        
+        
     }
 
 }

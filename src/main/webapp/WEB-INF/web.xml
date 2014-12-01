@@ -30,6 +30,7 @@
         <url-pattern>/getLocationsAtCounty</url-pattern>
         <url-pattern>/getNearestKLocationsAtCoord</url-pattern>
         <url-pattern>/getNearestKLocationsAtCounty</url-pattern>
+        <url-pattern>/loadFile</url-pattern>
     </servlet-mapping>
 
 

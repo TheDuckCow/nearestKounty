@@ -16,11 +16,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import nearestFinder.Bound;
 import nearestFinder.County;
+import nearestFinder.RTree;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
-
-import com.example.Main;
 
 import test.Test;
 
@@ -56,7 +55,7 @@ public class Controller extends HttpServlet {
                     float low_long = Float.parseFloat(request.getParameter("low_long"));
                     float high_lat = Float.parseFloat(request.getParameter("high_lat"));
                     float high_long = Float.parseFloat(request.getParameter("high_long"));
-                    ArrayList<County> result = Main.tree.getLocationsInBound(new Bound(low_long, high_long, low_lat, high_lat));
+                    ArrayList<County> result = FileLoader.tree.getLocationsInBound(new Bound(low_long, high_long, low_lat, high_lat));
                     JSONArray results = new JSONArray();
                     JSONObject temp = new JSONObject();
                     for(County c: result) {

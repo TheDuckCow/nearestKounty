@@ -1,4 +1,5 @@
 // INITIAL SETUP/global variables
+
 var countyMarkers = []
 
 var tmpPoint = {

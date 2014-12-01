@@ -1,6 +1,8 @@
 // INITIAL SETUP/global variables
 
 var countyMarkers = []
+var adjustBoundSW;
+var adjustBoundNE;
 
 var tmpPoint = {
   center: new google.maps.LatLng(41.878113, -87.629798),
@@ -346,8 +348,9 @@ function initialize() {
         new google.maps.LatLng(42.3693, -71.0490931)),
       editable: true  
   }
-  //42.369384477704216 -71.04909316406247
-  //42.33809104009208 -71.11075423583986
+  adjustBoundNE = [42.3693 - 42.3581, 71.0490931 - 71.0636];
+  adjustBoundSW = [42.33809 - 42.3581, 71.11075 - 71.0636];
+  //42.3581,-71.0636
   UICircle = new google.maps.Rectangle(rectangleOptions);
   updateBounds();
 
@@ -379,8 +382,14 @@ function initialize() {
   
   // single click, change center coordinates/move the 
   google.maps.event.addListener(map, 'click', function(e) {
+    console.log('trying to set center');
     primaryCenter = e.latLng
-    UICircle.setCenter(primaryCenter);
+    var oldBound = UICircle.getBounds();
+    oldBound.Ea.k = primaryCenter.k + adjustBoundSW[0];
+    oldBound.Ea.j = primaryCenter.k + adjustBoundNE[0];
+    oldBound.va.k = primaryCenter.B + adjustBoundSW[1];
+    oldBound.va.j = primaryCenter.B + adjustBoundNE[1];
+    UICircle.setBounds(oldBound);
     // pass to back-end stuff here?
     drawCities(map)
     

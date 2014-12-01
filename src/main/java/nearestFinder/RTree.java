@@ -1,3 +1,4 @@
+package nearestFinder;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -297,7 +298,7 @@ public class RTree implements Accessor{
 
 	public static ArrayList<County> knearestFill(ArrayList<County> knearest, County leaf, int k)
 	{
-		ArrayList<County> 
+		//ArrayList<County> 
 		return null;
 	}
 	
@@ -388,4 +389,10 @@ public class RTree implements Accessor{
         }
         bReader.close();
     }
+
+	@Override
+	public ArrayList<County> getNearestKLocationsAtCounty(County county, int k) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

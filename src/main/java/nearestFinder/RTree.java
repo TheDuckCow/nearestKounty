@@ -1,10 +1,10 @@
-package nearestFinder;
 
+import java.awt.Point;
+import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-
+import java.util.*;
 
 public class RTree implements Accessor{
 
@@ -286,6 +286,90 @@ public class RTree implements Accessor{
 		return null;
 	}
 
+	public County nearestNeighborSearch(RNode root, Point2D.Double p, double neardist, County nearcounty)
+	{
+		ArrayList<NodeNN> branchlist = new ArrayList<NodeNN>();
+		// leaf level
+		if (root.nodes.get(0) instanceof County)
+		{
+			for (Node n: root.nodes)
+			{
+				County c = (County)n;
+				double dist = Math.sqrt((p.x - c.lon)*(p.x - c.lon) + (p.y - c.lat)*(p.y - c.lat));
+				if (dist < neardist)
+				{
+					neardist = dist;
+					nearcounty = c;
+					return c;
+				}
+			}
+		}
+		else	 // nonleaf level
+		{
+			//----------------------generate branchlist------------------------------------
+			for (int i = 0; i < root.nodes.size(); i++)
+			{
+				double mindist = knnMinDist(p, root.nodes.get(i).bound);
+				double minmaxdist = knnMinMaxDist(p, root.nodes.get(i).bound);
+				NodeNN branch = new NodeNN(i, mindist, minmaxdist);
+				branchlist.add(branch);
+			}
+			
+			//sort branchlist
+			Collections.sort(branchlist, new NodeNN.MinDistSorter());
+			
+			//-------------------downward prune branchlist -----------------------------------------
+			//prune 1
+			int lastind = branchlist.size()-1;
+			while (lastind != 0)
+			{
+				for (int i = 0; i < lastind; i++)
+				{
+					
+					if (branchlist.get(i).minmaxDist < branchlist.get(lastind).minDist)
+					{
+						branchlist.remove(branchlist.size()-1);
+						break;
+					}
+				}
+				lastind--;
+			}
+			
+			//prune 2
+			// go thru each element after the 1st element
+			Iterator<NodeNN> iterator = branchlist.iterator();
+			while (iterator.hasNext())
+			{
+				NodeNN nnn = iterator.next();
+				if (nnn.minDist > nnn.minmaxDist)
+				{
+					iterator.remove();
+				}
+			}
+			// for the 1st element
+			if (branchlist.get(0) != null)
+			{
+				if (branchlist.get(0).minDist > branchlist.get(0).minmaxDist)
+				{
+					branchlist.remove(0);
+				}
+			}
+			
+			//-----------------iterate through branchlist---------------------
+			for (int i = 0; i < branchlist.size(); i++)
+			{
+				RNode newNode = (RNode)root.nodes.get(branchlist.get(i).index);
+				County myc = nearestNeighborSearch(newNode, p, neardist, nearcounty);
+			}
+			
+			//----------------upward pruning-------------------------------------
+			
+			
+			
+		}
+	}
+	/*
+	
 	public ArrayList<County> getNearestKLocationsAtCounty(Node root, County county, int k) 
 	{
 		ArrayList<County> kNearest = new ArrayList<County>();
@@ -296,27 +380,145 @@ public class RTree implements Accessor{
 		return null;
 	}
 
-	public static ArrayList<County> knearestFill(ArrayList<County> knearest, County leaf, int k)
+	public static ArrayList<County> knnFill(Set<County> S, RNode v, Point2D.Double p, int k)
 	{
-		//ArrayList<County> 
-		return null;
+		ArrayList<County> counties = new ArrayList<County>();	//set of counties contained in RNode v
+		
+		// if #counties in counties is more than the # needed to be added in S, trim counties
+		if ((counties.size() - S.size()) >= k)
+		{
+			sort counties by distance to p
+		}
+		// fill up set S with counties in node v
+		for (County c: counties)
+		{
+			S.add(c);
+		}
+		
+		if (S.size() < k)
+		{
+			
+		}
+		
+		
+		
+		
 	}
+	*/
 	
 
-	public static County ChooseLeaf(Node root, Bound mybound)
+	
+	public static double knnMinMaxDist(Point2D.Double p, Bound bound)
 	{
-		//check if root is leafnode
-		if (root instanceof County)
+		double S = 0;
+		if (p.x >= (bound.low_lon + bound.high_lon)/2)
 		{
-			County mycounty = (County)root;
-			return mycounty;
+			S += (p.x - bound.low_lon)*(p.x - bound.low_lon);
+		}
+		else
+		{
+			S += (p.x - bound.high_lon)*(p.x - bound.high_lon);
+		}
+		
+		if (p.y >= (bound.low_lat + bound.high_lat)/2)
+		{
+			S += (p.y - bound.low_lat)*(p.y - bound.low_lat);
+		}
+		else
+		{
+			S += (p.y - bound.high_lat)*(p.y - bound.high_lat);
+		}
+		
+		// find the minimum of either x or y
+		double xnum = S, ynum = S;
+		// x
+		if (p.x >= (bound.low_lon + bound.high_lon)/2)
+		{
+			xnum -= (p.x - bound.low_lon)*(p.x - bound.low_lon);
+			if (p.x == (bound.low_lon + bound.high_lon)/2)
+			{
+				xnum += (p.x - bound.low_lon)*(p.x - bound.low_lon);
+			}
+			else
+			{
+				xnum += (p.x - bound.high_lon)*(p.x - bound.high_lon);
+			}
+		}
+		else
+		{
+			xnum = xnum - (p.x-bound.high_lon)*(p.x-bound.high_lon) + (p.x-bound.low_lon)*(p.x-bound.low_lon);
+		}
+		
+		// y
+		if (p.y >= (bound.low_lat + bound.high_lat)/2)
+		{
+			ynum -= (p.x - bound.low_lat)*(p.x - bound.low_lat);
+			if (p.x == (bound.low_lat + bound.high_lat)/2)
+			{
+				ynum += (p.x - bound.low_lat)*(p.x - bound.low_lat);
+			}
+			else
+			{
+				ynum += (p.x - bound.high_lat)*(p.x - bound.high_lat);
+			}
+		}
+		else
+		{
+			ynum = ynum - (p.x-bound.high_lon)*(p.x-bound.high_lon) + (p.x-bound.low_lon)*(p.x-bound.low_lon);
+		}
+		
+		if (xnum < ynum)
+		{
+			return xnum;
+		}
+		else return ynum;
+		
+	}
+	
+	//calculates the square of the Euclidian distance from a point to a bounding box
+	public static double knnMinDist(Point2D.Double p, Bound bound)
+	{
+		double dist = 0;
+		
+		if (p.x < bound.low_lon)
+		{
+			dist = dist + ((bound.low_lon - p.x)*(bound.low_lon - p.x));
+		}
+		else if (p.x > bound.high_lon)
+		{
+			dist = dist + ((bound.high_lon - p.x)*(bound.high_lon - p.x));
+		}
+
+		
+		
+		if (p.y < bound.low_lat)
+		{
+			dist = dist + ((bound.low_lat - p.y)*(bound.low_lat - p.y));
+		}
+		else if (p.y > bound.high_lat)
+		{
+			dist = dist + ((p.y - bound.high_lat)*(p.y - bound.high_lat));
+		}
+		
+		return dist;
+	}
+	
+	/*
+	public static RNode ChooseLeaf(Node root, Bound mybound)
+	{
+        RNode rnode = ((RNode) root);
+        ArrayList<Node> children = rnode.nodes;
+
+		//check if root is 1 level above leaves
+		if (rnode.nodes.get(0) instanceof County)
+		{
+			return rnode;
 		}
 		
 		//select children of least enlargement of its bounds when selecting leaf, done recursively
 		int j = 0;
 		double m = Double.POSITIVE_INFINITY;
-		RNode rnode = (RNode)root;
-		ArrayList<Node> children = rnode.nodes;
+
 		for (int i = 0; i < children.size(); i++)
 		{
 			double a = children.get(i).bound.unionarea(mybound) - children.get(i).bound.area();
@@ -329,7 +531,7 @@ public class RTree implements Accessor{
 		
 		return ChooseLeaf(children.get(j), mybound);
 		
-	}
+	}*/
 	
     public void printTree() {
         printNode(root, 0);
@@ -389,10 +591,4 @@ public class RTree implements Accessor{
         }
         bReader.close();
     }
-
-	@Override
-	public ArrayList<County> getNearestKLocationsAtCounty(County county, int k) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

@@ -1,4 +1,3 @@
-package nearestFinder;
 
 import java.util.ArrayList;
 

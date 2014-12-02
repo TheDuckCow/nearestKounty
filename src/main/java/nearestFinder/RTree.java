@@ -4,14 +4,20 @@ import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+
+import javax.swing.text.html.HTMLDocument.Iterator;
 
 public class RTree implements Accessor{
 
-    final int m = 50;
     final int M = 100;
+    final int m = M/2;
     private RNode root = new RNode();;
 
+    //For searching
+    double max_dist;
 
     public void insertCounty(County county) {
         insertCountyIntoNode(county, root, null);
@@ -66,7 +72,6 @@ public class RTree implements Accessor{
             }
         }
     }
-
 
     private Node chooseSubtree(County county, RNode node) {
         //System.out.println("Choosing subtree");
@@ -280,21 +285,19 @@ public class RTree implements Accessor{
         return false;
     }
 
-	@Override
-	public ArrayList<County> getLocationsAtCounty(County county, double halfSquare) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	public County nearestNeighborSearch(RNode root, Point2D.Double p, double neardist, County nearcounty)
 	{
+
+        /*
 		ArrayList<NodeNN> branchlist = new ArrayList<NodeNN>();
+
 		// leaf level
 		if (root.nodes.get(0) instanceof County)
 		{
 			for (Node n: root.nodes)
 			{
-				County c = (County)n;
+				County c = (County) n;
 				double dist = Math.sqrt((p.x - c.lon)*(p.x - c.lon) + (p.y - c.lat)*(p.y - c.lat));
 				if (dist < neardist)
 				{
@@ -314,10 +317,10 @@ public class RTree implements Accessor{
 				NodeNN branch = new NodeNN(i, mindist, minmaxdist);
 				branchlist.add(branch);
 			}
-			
+
 			//sort branchlist
-			Collections.sort(branchlist, new NodeNN.MinDistSorter());
-			
+            Collections.sort(branchlist, new NodeNN.MinDistSorter());
+
 			//-------------------downward prune branchlist -----------------------------------------
 			//prune 1
 			int lastind = branchlist.size()-1;
@@ -325,7 +328,7 @@ public class RTree implements Accessor{
 			{
 				for (int i = 0; i < lastind; i++)
 				{
-					
+
 					if (branchlist.get(i).minmaxDist < branchlist.get(lastind).minDist)
 					{
 						branchlist.remove(branchlist.size()-1);
@@ -334,7 +337,7 @@ public class RTree implements Accessor{
 				}
 				lastind--;
 			}
-			
+
 			//prune 2
 			// go thru each element after the 1st element
 			Iterator<NodeNN> iterator = branchlist.iterator();
@@ -354,185 +357,199 @@ public class RTree implements Accessor{
 					branchlist.remove(0);
 				}
 			}
-			
+
 			//-----------------iterate through branchlist---------------------
 			for (int i = 0; i < branchlist.size(); i++)
 			{
 				RNode newNode = (RNode)root.nodes.get(branchlist.get(i).index);
 				County myc = nearestNeighborSearch(newNode, p, neardist, nearcounty);
 			}
-			
+
 			//----------------upward pruning-------------------------------------
-			
-			
-			
+
+
+
 		}
-	}
-	/*
-	
-	public ArrayList<County> getNearestKLocationsAtCounty(Node root, County county, int k) 
-	{
-		ArrayList<County> kNearest = new ArrayList<County>();
-		County leaf = ChooseLeaf(root, county.bound);
-		
-		
-		
-		return null;
+		return nearcounty;
+        */
+        return null;
 	}
 
-	public static ArrayList<County> knnFill(Set<County> S, RNode v, Point2D.Double p, int k)
-	{
-		ArrayList<County> counties = new ArrayList<County>();	//set of counties contained in RNode v
-		
-		// if #counties in counties is more than the # needed to be added in S, trim counties
-		if ((counties.size() - S.size()) >= k)
-		{
-			sort counties by distance to p
-		}
-		// fill up set S with counties in node v
-		for (County c: counties)
-		{
-			S.add(c);
-		}
-		
-		if (S.size() < k)
-		{
-			
-		}
-		
-		
-		
-		
-	}
-	*/
-	
+    private class NodeNNL {
+        County county;
+        double dist;
 
-	
+        NodeNNL (County c, double distance){
+            this.county = c;
+            this.dist = distance;
+        }
+    }
+
+    public void nearestKNeighborSearch (RNode node, Point2D.Double p, ArrayList<NodeNNL> counties, int k, double minMaxBranchDist)
+    {
+
+        //System.out.println("Start");
+        //printNode(node, 1);
+        //System.out.println("End");
+        if (node.nodes.get(0) instanceof County) {
+            //Leaf Level
+			for (Node n: node.nodes)
+			{
+				County c = (County) n;
+				double dist = (p.x - c.lon) * (p.x - c.lon) + (p.y - c.lat) * (p.y - c.lat);
+
+                if (dist > minMaxBranchDist)
+                    continue;
+
+                if(counties.size() == 0) {
+                    counties.add(new NodeNNL(c, dist));
+                } else if(counties.size() >= k) {
+                    //If we already have enough
+                    if (dist < max_dist){
+                        //Adding to list, keeping it sorted
+                        for(int i = counties.size() - 1; i >= 0; i--) {
+                            if(counties.get(i).dist <= dist){
+                                //Only add if it's not at the end
+                                if (i != counties.size() - 1){
+                                    //Add it and then remove from end
+                                    counties.add(i + 1, new NodeNNL(c, dist));
+                                    counties.remove(counties.size() - 1);
+                                }
+                                break;
+                            } else if (i == 0) {
+                                //Add to beginning
+                                counties.add(0 , new NodeNNL(c, dist));
+                                counties.remove(counties.size() - 1);
+                            }
+                        }
+                        //Removing extra counties at the end
+                    }
+                } else {
+                    //Add to list no matter what
+                    for(int i = counties.size() - 1; i >= 0; i--) {
+                        if(counties.get(i).dist <= dist){
+                            //Add to after i
+                            counties.add(i + 1, new NodeNNL(c, dist));
+                            break;
+                        } else if (i == 0) {
+                            //Add to beginning
+                            counties.add(0 , new NodeNNL(c, dist));
+                        }
+                    }
+                }
+                max_dist = counties.get(counties.size() - 1).dist;
+			}
+            //TODO REMOVE IF STATEMENT BELOW
+            if(counties.size() > k)
+                System.out.println("ERROR. counties size more than needed");
+        } else {
+
+            ArrayList<NodeNN> branchlist = new ArrayList<NodeNN>();
+
+			//----------------------generate branchlist------------------------------------
+			for (int i = 0; i < node.nodes.size(); i++)
+			{
+				double mindist = knnMinDist(p, node.nodes.get(i).bound);
+				double minmaxdist = knnMinMaxDist(p, node.nodes.get(i).bound);
+				NodeNN branch = new NodeNN((RNode)(node.nodes.get(i)), mindist, minmaxdist);
+				branchlist.add(branch);
+			}
+
+			//sort branchlist
+            Collections.sort(branchlist, new MinMaxDistSorter());
+
+            //downwoard pruning
+            for( int i = branchlist.size() - 1; i >= k; i--){
+                if (branchlist.get(i).minDist > branchlist.get(k - 1).minmaxDist) {
+                    branchlist.remove(i);
+                }
+            }
+
+            for( int i = 0; i < branchlist.size(); i++){
+
+                NodeNN n = branchlist.get(i);
+                double branch_max_dist = (branchlist.size() > k) ? branchlist.get(k).minmaxDist : Double.MAX_VALUE;
+                nearestKNeighborSearch(n.node, p, counties, k, branch_max_dist);
+
+                int index = i;
+                //Upward pruning
+                if( counties.size() >= k) {
+                    for( int j = 0; j < branchlist.size(); j++) {
+                        NodeNN toDelete = branchlist.get(j);
+                        if (toDelete.minDist > max_dist) {
+                            branchlist.remove(j);
+                            if (i <= j)
+                                i--;
+                            j--;
+                        }
+                    }
+                }
+                i = index;
+            }
+        }
+    }
+
+    public class MinMaxDistSorter implements Comparator<NodeNN>
+    {
+        public int compare(NodeNN nodenn1, NodeNN nodenn2)
+        {
+            Double num1 = nodenn1.minmaxDist;
+            Double num2 = nodenn2.minmaxDist;
+            return num1.compareTo(num2);
+        }
+    }
+
 	public static double knnMinMaxDist(Point2D.Double p, Bound bound)
 	{
-		double S = 0;
-		if (p.x >= (bound.low_lon + bound.high_lon)/2)
-		{
-			S += (p.x - bound.low_lon)*(p.x - bound.low_lon);
-		}
+		double xnum = 0, ynum = 0;
+
+        //pi-rMi
+		if (p.x >= (bound.low_lon + bound.high_lon) / 2)
+			ynum += (p.x - bound.low_lon) * (p.x - bound.low_lon);
 		else
-		{
-			S += (p.x - bound.high_lon)*(p.x - bound.high_lon);
-		}
-		
+			ynum += (p.x - bound.high_lon) * (p.x - bound.high_lon);
+
 		if (p.y >= (bound.low_lat + bound.high_lat)/2)
-		{
-			S += (p.y - bound.low_lat)*(p.y - bound.low_lat);
-		}
+			xnum += (p.y - bound.low_lat) * (p.y - bound.low_lat);
 		else
-		{
-			S += (p.y - bound.high_lat)*(p.y - bound.high_lat);
-		}
-		
-		// find the minimum of either x or y
-		double xnum = S, ynum = S;
-		// x
-		if (p.x >= (bound.low_lon + bound.high_lon)/2)
-		{
-			xnum -= (p.x - bound.low_lon)*(p.x - bound.low_lon);
-			if (p.x == (bound.low_lon + bound.high_lon)/2)
-			{
-				xnum += (p.x - bound.low_lon)*(p.x - bound.low_lon);
-			}
-			else
-			{
-				xnum += (p.x - bound.high_lon)*(p.x - bound.high_lon);
-			}
-		}
+			xnum += (p.y - bound.high_lat) * (p.y - bound.high_lat);
+
+        //pk-rmk
+		if (p.x <= (bound.low_lon + bound.high_lon) / 2)
+			xnum += (p.x - bound.low_lon) * (p.x - bound.low_lon);
 		else
-		{
-			xnum = xnum - (p.x-bound.high_lon)*(p.x-bound.high_lon) + (p.x-bound.low_lon)*(p.x-bound.low_lon);
-		}
-		
-		// y
-		if (p.y >= (bound.low_lat + bound.high_lat)/2)
-		{
-			ynum -= (p.x - bound.low_lat)*(p.x - bound.low_lat);
-			if (p.x == (bound.low_lat + bound.high_lat)/2)
-			{
-				ynum += (p.x - bound.low_lat)*(p.x - bound.low_lat);
-			}
-			else
-			{
-				ynum += (p.x - bound.high_lat)*(p.x - bound.high_lat);
-			}
-		}
+			xnum += (p.x - bound.high_lon) * (p.x - bound.high_lon);
+
+		if (p.y <= (bound.low_lat + bound.high_lat)/2)
+			ynum += (p.y - bound.low_lat) * (p.y - bound.low_lat);
 		else
-		{
-			ynum = ynum - (p.x-bound.high_lon)*(p.x-bound.high_lon) + (p.x-bound.low_lon)*(p.x-bound.low_lon);
-		}
-		
+			ynum += (p.y - bound.high_lat) * (p.y - bound.high_lat);
+
 		if (xnum < ynum)
-		{
 			return xnum;
-		}
-		else return ynum;
-		
+
+		return ynum;
+
 	}
-	
+
 	//calculates the square of the Euclidian distance from a point to a bounding box
 	public static double knnMinDist(Point2D.Double p, Bound bound)
 	{
 		double dist = 0;
-		
-		if (p.x < bound.low_lon)
-		{
-			dist = dist + ((bound.low_lon - p.x)*(bound.low_lon - p.x));
-		}
-		else if (p.x > bound.high_lon)
-		{
-			dist = dist + ((bound.high_lon - p.x)*(bound.high_lon - p.x));
-		}
 
-		
-		
+		if (p.x < bound.low_lon)
+			dist += (bound.low_lon - p.x) * (bound.low_lon - p.x);
+		else if (p.x > bound.high_lon)
+			dist += (bound.high_lon - p.x) * (bound.high_lon - p.x);
+
 		if (p.y < bound.low_lat)
-		{
-			dist = dist + ((bound.low_lat - p.y)*(bound.low_lat - p.y));
-		}
+			dist += (bound.low_lat - p.y) * (bound.low_lat - p.y);
 		else if (p.y > bound.high_lat)
-		{
-			dist = dist + ((p.y - bound.high_lat)*(p.y - bound.high_lat));
-		}
-		
+			dist += (p.y - bound.high_lat) * (p.y - bound.high_lat);
+
 		return dist;
 	}
-	
-	/*
-	public static RNode ChooseLeaf(Node root, Bound mybound)
-	{
-        RNode rnode = ((RNode) root);
-        ArrayList<Node> children = rnode.nodes;
 
-		//check if root is 1 level above leaves
-		if (rnode.nodes.get(0) instanceof County)
-		{
-			return rnode;
-		}
-		
-		//select children of least enlargement of its bounds when selecting leaf, done recursively
-		int j = 0;
-		double m = Double.POSITIVE_INFINITY;
-
-		for (int i = 0; i < children.size(); i++)
-		{
-			double a = children.get(i).bound.unionarea(mybound) - children.get(i).bound.area();
-			if (a < m)
-			{
-				m = a;
-				j = i;
-			}
-		}
-		
-		return ChooseLeaf(children.get(j), mybound);
-		
-	}*/
-	
     public void printTree() {
         printNode(root, 0);
     }
@@ -591,4 +608,18 @@ public class RTree implements Accessor{
         }
         bReader.close();
     }
+
+	public ArrayList<County> getNearestKLocationsAtPoint(double lon, double lat, int k){
+        Point2D.Double x = new Point2D.Double(lon, lat);
+        ArrayList<NodeNNL> result = new ArrayList<NodeNNL>();
+        ArrayList<NodeNN> branchlist = new ArrayList<NodeNN>();
+        max_dist = Double.MAX_VALUE;
+        nearestKNeighborSearch(root, x, result, k, Double.MAX_VALUE);
+        ArrayList<County> counties = new ArrayList<County>();
+        for (int i= 0; i < result.size(); i++ ) {
+            counties.add(result.get(i).county);
+        }
+		return counties;
+	}
+
 }

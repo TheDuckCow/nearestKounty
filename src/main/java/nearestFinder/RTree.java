@@ -285,96 +285,6 @@ public class RTree implements Accessor{
         return false;
     }
 
-
-	public County nearestNeighborSearch(RNode root, Point2D.Double p, double neardist, County nearcounty)
-	{
-
-        /*
-		ArrayList<NodeNN> branchlist = new ArrayList<NodeNN>();
-
-		// leaf level
-		if (root.nodes.get(0) instanceof County)
-		{
-			for (Node n: root.nodes)
-			{
-				County c = (County) n;
-				double dist = Math.sqrt((p.x - c.lon)*(p.x - c.lon) + (p.y - c.lat)*(p.y - c.lat));
-				if (dist < neardist)
-				{
-					neardist = dist;
-					nearcounty = c;
-					return c;
-				}
-			}
-		}
-		else	 // nonleaf level
-		{
-			//----------------------generate branchlist------------------------------------
-			for (int i = 0; i < root.nodes.size(); i++)
-			{
-				double mindist = knnMinDist(p, root.nodes.get(i).bound);
-				double minmaxdist = knnMinMaxDist(p, root.nodes.get(i).bound);
-				NodeNN branch = new NodeNN(i, mindist, minmaxdist);
-				branchlist.add(branch);
-			}
-
-			//sort branchlist
-            Collections.sort(branchlist, new NodeNN.MinDistSorter());
-
-			//-------------------downward prune branchlist -----------------------------------------
-			//prune 1
-			int lastind = branchlist.size()-1;
-			while (lastind != 0)
-			{
-				for (int i = 0; i < lastind; i++)
-				{
-
-					if (branchlist.get(i).minmaxDist < branchlist.get(lastind).minDist)
-					{
-						branchlist.remove(branchlist.size()-1);
-						break;
-					}
-				}
-				lastind--;
-			}
-
-			//prune 2
-			// go thru each element after the 1st element
-			Iterator<NodeNN> iterator = branchlist.iterator();
-			while (iterator.hasNext())
-			{
-				NodeNN nnn = iterator.next();
-				if (nnn.minDist > nnn.minmaxDist)
-				{
-					iterator.remove();
-				}
-			}
-			// for the 1st element
-			if (branchlist.get(0) != null)
-			{
-				if (branchlist.get(0).minDist > branchlist.get(0).minmaxDist)
-				{
-					branchlist.remove(0);
-				}
-			}
-
-			//-----------------iterate through branchlist---------------------
-			for (int i = 0; i < branchlist.size(); i++)
-			{
-				RNode newNode = (RNode)root.nodes.get(branchlist.get(i).index);
-				County myc = nearestNeighborSearch(newNode, p, neardist, nearcounty);
-			}
-
-			//----------------upward pruning-------------------------------------
-
-
-
-		}
-		return nearcounty;
-        */
-        return null;
-	}
-
     private class NodeNNL {
         County county;
         double dist;
@@ -388,9 +298,6 @@ public class RTree implements Accessor{
     public void nearestKNeighborSearch (RNode node, Point2D.Double p, ArrayList<NodeNNL> counties, int k, double minMaxBranchDist)
     {
 
-        //System.out.println("Start");
-        //printNode(node, 1);
-        //System.out.println("End");
         if (node.nodes.get(0) instanceof County) {
             //Leaf Level
 			for (Node n: node.nodes)

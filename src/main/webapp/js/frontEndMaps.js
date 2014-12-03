@@ -388,7 +388,12 @@ function initialize() {
   function updateBounds(event) {
     var ne = UIRectangle.getBounds().getNorthEast();
     var sw = UIRectangle.getBounds().getSouthWest();
-    console.log(ne.lng());
+    console.log('Bounds');
+    console.log('SW Lat: ' + sw.lat());
+    console.log('SW Lng: ' + sw.lng());
+    console.log('NE Lat: ' + ne.lat());
+    console.log('NE Lng: ' + ne.lng());
+    console.log('');
     $.ajax({
        url: "getLocationsInBound",
        type: "GET",

@@ -71,7 +71,20 @@ public class Controller extends HttpServlet {
                     data.put("ok", Test.getLocationsAtCounty());
                     break;
                 case "/getNearestKLocationsAtCoord":
-                    data.put("ok", Test.getNearestKLocationsAtCoord());
+                    float lat = Float.parseFloat(request.getParameter("lat"));
+                    float lng = Float.parseFloat(request.getParameter("long"));
+                    int k = Integer.parseInt(request.getParameter("k"));
+                    ArrayList<County> kResult = FileLoader.tree.getNearestKLocationsAtPoint(lng, lat, k);
+                    ArrayList<JSONObject> kJSONResults = new ArrayList<JSONObject>();
+                    for (County c: kResult) {
+                    	JSONObject temp = new JSONObject();
+                    	temp.put("long", c.lon);
+                    	temp.put("lat", c.lat);
+                    	temp.put("state", c.state);
+                    	temp.put("title", c.title);
+                    	kJSONResults.add(temp);  
+                    }
+                    data.put("results", kJSONResults);
                     break;
                 case "/isWithinBound":
                     int x = Integer.parseInt(request.getParameter("locationX"));

@@ -1,4 +1,4 @@
-
+package nearestFinder;
 
 public class NodeNN {
     RNode node;

@@ -1,31 +1,58 @@
+// function to set the desciption for K Nearest tab
+function kNearestDesciption(){
+  var description;
+  description = "Click the map to select the starting reference point";
+  description += " or enter a longitude and latitude below.<br>";
+  
+  var $inputFields = $('<div>').addClass('inputFields');
+  $input = $('<div>').addClass('input').html("<span class='inputText'>Latitude:</span> <input class='latInput'></input><br><div class='bounds'>[-90...90]</div>"); 
+  $inputFields.append($input);
+
+  var $input = $('<div>').addClass('input').html("<span class='inputText'>Longitude:</span> <input class='lngInput'></input><div class='bounds'>[-180...180]</div>"); 
+  $inputFields.append($input);
+
+  $input = $('<div>').addClass('input').html("<span class='inputText'>K Nearest:</span> <input class='k'></input><div class='bounds'>[1...100]</div>"); 
+  $inputFields.append($input);
+
+  var submit;
+  submit = "<input class='submitButton' type='submit' value='Update'><hr>";
+
+  var results;
+  results = "<div class='kResults'></div>";
+
+  $('.explanation').html(description).append($inputFields).append(submit).append(results);
+}
+
+// function to set the description for Rectangle Bound tab
+function rectangleBoundDescription(){
+
+  var description;
+  description = "Click the map to select the center of the rectangle";
+  description += " or enter a longitude and latitude below.<br>";
+  
+  var $inputFields = $('<div>').addClass('inputFields');
+  $input = $('<div>').addClass('input').html("<span class='inputText'>Latitude:</span> <input class='latInput'></input><br><div class='bounds'>[-90...90]</div>"); 
+  $inputFields.append($input);
+
+  var $input = $('<div>').addClass('input').html("<span class='inputText'>Longitude:</span> <input class='lngInput'></input><div class='bounds'>[-180...180]</div>"); 
+  $inputFields.append($input);
+
+  var submit;
+  submit = "<input class='submitButton' type='submit' value='Update'><hr>";
+  submit += "<span class='nLocations'>0</span> locations within the bounds.";
+
+  $('.explanation').html(description).append($inputFields).append(submit);
+}
+
 // INITIAL SETUP/global variables
 
 var countyMarkers = []
 var adjustBoundSW;
 var adjustBoundNE;
+var tab;
+var globalK = 1;
 
-var tmpPoint = {
-  center: new google.maps.LatLng(41.878113, -87.629798),
-  zipcode: 2714856,
-  name:"Chicago"
-};
-countyMarkers.push(tmpPoint);
-tmpPoint = {
-  center: new google.maps.LatLng(40.7127, -74.0059),
-  zipcode: 3857799,
-  name:"New York"
-};
-countyMarkers.push(tmpPoint);
-
-tmpPoint = {
-  center: new google.maps.LatLng(49.25, -123.1),
-  zipcode: 603502,
-  name:"Vancouver"
-};
-countyMarkers.push(tmpPoint);
-
-
-var UICircle;
+var UIRectangle;
 //var genericMarker;
 var markers = []; 	// reference container for markers
 
@@ -33,184 +60,6 @@ var markers = []; 	// reference container for markers
 var primaryCenter;	// long/lat of center of circle
 var currentK = 20;		// current "k" closest"
 var radius = 500000;			// radius of the circle
-//var infowindow;
-
-
-///////////////////////////////////////////////////////////////////////////
-// BACKEND stuff
-function backendSendK(){
-	console.log("Sending K: "+currentK+", at "+primaryCenter);
-	
-	// clear all values of "countyMarkers" and load in new values from backend
-	
-	// radius = //get updated radius from backend
-	
-	UICircle.setRadius(radius);
-}
-
-function backendSendRadius(){
-	console.log("Sending current radius: "+radius+", at "+primaryCenter);
-	
-	UICircle.setRadius(radius); // creates a loop!
-	//UICircle.set ('radius',radius);
-	
-	// clear all values of "countyMarkers" and load in new values from backend
-	// currentK = //get updated K from backend
-	
-}
-
-///////////////////////////////////////////////////////////////////////////
-// UI button setup
-function UIControls(map) {
-  
-  
-	// Create a div to hold everything else
-	//var outterDiv = document.createElement('DIV');
-	var controlDiv = document.createElement('DIV');
-	controlDiv.id = "controls";
-	controlDiv.style.padding = '5px';
-	controlDiv.style.backgroundColor = 'white';
-	controlDiv.style.borderStyle = 'solid';
-	controlDiv.style.borderWidth = '1px';
-	
-	
-	// Create a label
-	var infoLabel = document.createElement('label');
-	infoLabel.innerHTML = '<b>County Finder</b><br>Click the map to select the starting reference point. <br>Set the number of counties you would like returned below.<br>K reference points: ';
-	infoLabel.setAttribute("for","infoLable");
-	
-		   
-	// Create an dropdown list
-  var dropDownList = document.createElement('select');
-  dropDownList.setAttribute('class', 'k');
-
-  for(var i = 1; i < 11; i++) {
-    var opt = document.createElement("option");
-    opt.value= i;
-    opt.innerHTML = i; // whatever property it has
-
-    // then append it to the select element
-    dropDownList.appendChild(opt);
-  }
-
-
-	// // Create a label
-	// var controlLabel = document.createElement('label');
-	// controlLabel.innerHTML = '<br>Find nearest k counties, k=';
-	// controlLabel.setAttribute("for","some-information");
-
-	// // Create a button to send the information
-	// var controlButton = document.createElement('a');
-	// controlButton.innerHTML = ' Press to set K!';
-	
-	
-	// // second row!
-	// // Create an input field
-	// var controlInputR = document.createElement('input');
-	// controlInputR.id = "radius-information";
-	// controlInputR.name = "radius-information";
-	// controlInputR.value = radius;
-
-	// // Create a label
-	// var controlLabelR = document.createElement('label');
-	// controlLabelR.innerHTML = '<br>Radius, r(meters)=';
-	// controlLabelR.setAttribute("for","radius-information");
-
-	// // Create a button to send the information
-	// var controlButtonR = document.createElement('a');
-	// controlButtonR.innerHTML = ' Press to set Radius!';
-
-
-	// Append everything to the wrapper div
-	controlDiv.appendChild(infoLabel);
-	controlDiv.appendChild(dropDownList);
-	// controlDiv.appendChild(controlInput);
-	// controlDiv.appendChild(controlButton);
-	// controlDiv.appendChild(controlLabelR);
-	// controlDiv.appendChild(controlInputR);
-	// controlDiv.appendChild(controlButtonR);
-	
-	// ie when you click on "send it" in the top right corner
-	var onClickK = function() {
-		currentK=controlInput.value;
-		console.log('BUTTON: Setting new k value of '+currentK);
-		
-		// pass to back-end stuff here?
-		backendSendK();
-  		drawCities(map);
-		
-	};
-	//google.maps.event.addDomListener(controlButton, 'click', onClickK);
-	
-	// ie when you click on "send it" in the top right corner
-	var onClickR = function() {
-		radius=Number(controlInputR.value);
-		console.log('BUTTON: Setting new radius value: '+radius);
-		
-		// pass to back-end stuff here?
-		backendSendRadius();
-  		drawCities(map);
-		
-	};
-	
-	//google.maps.event.addDomListener(controlButtonR, 'click', onClickR);
-	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDiv);
-	
-	
-	
-  
-  /*  
-  // DIV for text input, far right
-  var controlDiv2 = document.createElement('DIV');
-  controlDiv2.style.padding = '5px';
-
-  var controlInput = document.createElement('INPUT');
-  controlInput.name = "nearestKinput";
-  controlInput.type = "text";
-  controlInput.style.borderWidth = '2px';
-  controlDiv2.appendChild(controlInput);
-
-  //control javascript (e.g. any handlers that you need)
-  var myControl = UInearestK(controlDiv2)
-  
-  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDiv2);
-  
-  
-  // SETUP for the text "Find nearest {integer, 0-999}"
-  controlDiv = document.createElement('div');
-  controlDiv.style.padding = '5px';
-
-  // Set CSS for the control border
-  var controlUI = document.createElement('div');
-  controlUI.style.backgroundColor = 'white';
-  controlUI.style.borderStyle = 'solid';
-  controlUI.style.borderWidth = '1px';
-  controlUI.style.cursor = 'pointer';
-  controlUI.style.textAlign = 'center';
-  controlUI.title = 'Click to set the map to Home';
-  controlDiv.appendChild(controlUI);
-
-  // Set CSS for the control interior
-  var controlText = document.createElement('div');
-  controlText.style.fontFamily = 'Arial,sans-serif';
-  controlText.style.fontSize = '12px';
-  controlText.style.paddingLeft = '4px';
-  controlText.style.paddingRight = '4px';
-  controlText.innerHTML = 'Find nearest {integer, 0-999}:';
-  controlUI.appendChild(controlText);
-  
-  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDiv);
-
-
-  // Setup map for click listeners // NO listener for this, just text UI object
-  //google.maps.event.addDomListener(controlUI, 'click', function() {
-  //  map.setCenter(chicago)
-  //});
-  
-  
-  */
-}
-
 
 // function for refreshing the page with new markers, only one to drop markers
 function drawCities(map){
@@ -219,11 +68,11 @@ function drawCities(map){
     markers[i].setMap(null);
   }
   markers = [];
-  console.log(countyMarkers);
+
   // then, draw all the new ones
   for (var county in countyMarkers){
   
-  	data = "<b>"+countyMarkers[county].zipcode + "</b><hr/>Coordinate: " + countyMarkers[county].center+"<br>Name: "+countyMarkers[county].name;
+  	data = "<b>"+countyMarkers[county].zipcode + ", " + countyMarkers[county].name + "</b><hr>Latitude: " + countyMarkers[county].center.k + "<br>Longitude: " + countyMarkers[county].center.B;
   	var markerOptions = {
   		map: map,
       	//icon: 'images/markerGreen.png',
@@ -240,7 +89,7 @@ function drawCities(map){
     
     markers.push(genericMarker);
     google.maps.event.addListener(genericMarker, 'click', function() {
-	this.info.open(map, this);	  
+	     this.info.open(map, this);	  
     });
   }
 }
@@ -264,9 +113,16 @@ function onItemClick(event, pin, map) {
 ///////////////////////////////////////////////////////////////////////////
 // INITIALIZE FUNCTIOn (contains all)
 function initialize() {
-  
+      //curl -d 'lat=31' -d 'long=-113' -d 'k=10' 0.0.0.0:8080/getNearestKLocationsAtCoord
   // SETUP of map and style
   //42.3581° N, 71.0636° W
+  $(document).keyup('input', function(event){
+    if(event.keyCode == 13){
+        $(".submitButton").click();
+    }
+  });
+
+
   primaryCenter = new google.maps.LatLng(42.3581,-71.0636);
   var mapOptions = {
     zoom: 13,
@@ -316,84 +172,184 @@ function initialize() {
 	}
   ]);
   
-  // Setup of the UI controls
-  var UICont = new UIControls(map);
-
-  
-  // OTHER STUFF
-  drawCities(map)
-  
-  var circleOptions = {
-      strokeColor: '#FF0000',
-      strokeOpacity: 0.8,
-      strokeWeight: 2,
-      fillColor: '#FF0000',
-      fillOpacity: 0.35,
-      map: map,
-      center: primaryCenter, //LatLng object
-      radius: radius, // in meters
-      editable: true
-    };
-    
   var rectangleOptions = {
       strokeColor: '#FF0000',
       strokeOpacity: 0.8,
       strokeWeight: 2,
       fillColor: '#FF0000',
       fillOpacity: 0.35,
-      map: map,
+      map: null,
       draggable: false,
       bounds: new google.maps.LatLngBounds(
         new google.maps.LatLng(42.33809, -71.11075),
         new google.maps.LatLng(42.3693, -71.0490931)),
       editable: true  
   }
-  adjustBoundNE = [42.3693 - 42.3581, 71.0490931 - 71.0636];
-  adjustBoundSW = [42.33809 - 42.3581, 71.11075 - 71.0636];
+  adjustBoundNE = [42.3693 - 42.3581, 71.11075 - 71.0636];
+  adjustBoundSW = [42.33809 - 42.3581, 71.0490931 - 71.0636];
   //42.3581,-71.0636
-  UICircle = new google.maps.Rectangle(rectangleOptions);
-  updateBounds();
+  UIRectangle = new google.maps.Rectangle(rectangleOptions);
+
+  var kMarkerOptions = {
+        map: map,
+        position: new google.maps.LatLng(42.3581, -71.0636),
+        clickable: false,
+        icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+    };
+  var kMarker = new google.maps.Marker(kMarkerOptions);
+
+  // set the initial description
+  kNearestDesciption();
+  tab = 'nearest';
+  $('.lngInput').val(-71.0636);
+  $('.latInput').val(42.3581);
+  $('.k').val(globalK);
+
+  // tab styling switch
+  $('.tab').on('click', function(){
+    var $this = $(this);
+    if (!$this.hasClass('selected')) {
+      $('.selected').removeClass('selected');
+      $this.addClass('selected');
+      if ($this.hasClass('nearest')) {
+        tab = 'nearest';
+        kNearestDesciption();
+        var position = kMarker.getPosition();
+        $('.lngInput').val(position.lng());
+        $('.latInput').val(position.lat());
+        $('.k').val(globalK);
+        getNearestK(position.lat(), position.lng(), globalK);
+        countyMarkers = [];
+        drawCities(map);
+        UIRectangle.setMap(null);
+        kMarker.setMap(map);
+      } else {
+        tab = 'bound';
+        rectangleBoundDescription();
+        var center = getCenter(UIRectangle);
+        $('.lngInput').val(center[1]);
+        $('.latInput').val(center[0]);
+        UIRectangle.setMap(map);
+        kMarker.setMap(null);
+        updateBounds();
+      }
+    }
+  });
+
+  // clicking the update button
+  $(document).on('click', '.submitButton', function(){
+    //    map.setCenter(new google.maps.LatLng(primaryCenter.k, primaryCenter.B));
+    var lng = parseFloat($('.lngInput').val());
+    var lat = parseFloat($('.latInput').val());
+    var k   = parseInt($('.k').val());
+
+    // if the lat and lng are in the bounds of the US
+    if (lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90) {
+      map.setCenter(new google.maps.LatLng(lat, lng));
+      if (tab === 'nearest') {
+        if (k >= 1 && k <= 100 || k === 10000) {
+          getNearestK(lat, lng, k);
+          kMarker.setPosition(new google.maps.LatLng(lat, lng));
+          globalK = k;
+        }
+      } else {
+        var lat_low = lat + adjustBoundSW[0] + 0.005;
+        var lat_high = lat + adjustBoundNE[0] + 0.005;
+        var long_low = lng + adjustBoundSW[1] - 0.015;
+        var long_high = lng + adjustBoundNE[1] - 0.015;
+        UIRectangle.setBounds(new google.maps.LatLngBounds(
+            new google.maps.LatLng(lat_low, long_low),
+            new google.maps.LatLng(lat_high, long_high)));
+        updateBounds();
+      }
+    }
+  });
 
   // Add an event listener on the rectangle.
-  google.maps.event.addListener(UICircle, 'bounds_changed', updateBounds);
-  
-  
-  // LISTENERS
-  
-  google.maps.event.addListener(UICircle, 'radius_changed', function() {
-  	if (radius != UICircle.getRadius()){
-  		radius = UICircle.getRadius();
-  	
-  		// pass to back-end stuff here?
-  		backendSendRadius();
-  		drawCities(map);
-  	}
-  });
-  
-  
-	google.maps.event.addListener(UICircle, 'center_changed', function() {
-	primaryCenter = UICircle.center;
-  	
-  	// pass to back-end stuff here?
-  	backendSendRadius();
-  	drawCities(map);
-  });
+  google.maps.event.addListener(UIRectangle, 'bounds_changed', updateBounds);
   
   
   // single click, change center coordinates/move the 
   google.maps.event.addListener(map, 'click', function(e) {
-    console.log('trying to set center');
-    primaryCenter = e.latLng
-    var oldBound = UICircle.getBounds();
-    oldBound.Ea.k = primaryCenter.k + adjustBoundSW[0];
-    oldBound.Ea.j = primaryCenter.k + adjustBoundNE[0];
-    oldBound.va.k = primaryCenter.B + adjustBoundSW[1];
-    oldBound.va.j = primaryCenter.B + adjustBoundNE[1];
-    UICircle.setBounds(oldBound);
-    // pass to back-end stuff here?
-    drawCities(map)
-    
+    if (tab === 'bound') {
+      primaryCenter = e.latLng
+      var lat_low = primaryCenter.k + adjustBoundSW[0] + 0.005;
+      var lat_high = primaryCenter.k + adjustBoundNE[0] + 0.005;
+      var long_low = primaryCenter.B + adjustBoundSW[1] - 0.015;
+      var long_high = primaryCenter.B + adjustBoundNE[1] - 0.015;
+      UIRectangle.setBounds(new google.maps.LatLngBounds(
+          new google.maps.LatLng(lat_low, long_low),
+          new google.maps.LatLng(lat_high, long_high)));
+      var center = getCenter(UIRectangle);
+      $('.lngInput').val(center[1]);
+      $('.latInput').val(center[0]);
+    } else {
+      kMarker.setPosition(e.latLng);
+      $('.lngInput').val(e.latLng.B);
+      $('.latInput').val(e.latLng.k);
+      getNearestK(e.latLng.k, e.latLng.B, globalK);
+      kMarker.setPosition(e.latLng);
+    }
   });
+
+  function majorityVoting(lat, long){
+    $.ajax({
+      url: "getNearestKLocationsAtCoord",
+      type: "GET",
+      data: {lat : lat,
+             long : long,
+             k : 5 },
+      success: function(response){
+        var foundCounties = {};
+        for (var i = 0; i < response.results.length; i++){
+          var index = response.results[i].title + ', ' + response.results[i].state;
+          if (foundCounties[index] === undefined) {
+            foundCounties[index] = 1;
+          } else {
+            foundCounties[index] = foundCounties[index] + 1;
+          }
+        }
+        var majority = null;
+        var max = 0;
+        for (var key in foundCounties){
+          if (foundCounties[key] > max){
+            max = foundCounties[key];
+            majority = key;
+          }
+        }
+        console.log(key);
+        $('.kResults').prepend('<b>Majority Voting</b><br>' + key + '<br><br>');
+      },
+      error: function(err){
+        console.log(err);
+      }
+    });
+  }
+
+  function getNearestK(lat, long, k){
+    $.ajax({
+      url: "getNearestKLocationsAtCoord",
+      type: "GET",
+      data: {lat : lat,
+             long : long,
+             k : k },
+      success: function(response){
+        console.log(response);
+        countyMarkers = [];
+        $('.kResults').html('<b>Nearest Points</b><br>');
+        for (var i = 0; i < response.results.length; i++){
+            point = response.results[i];
+            addPointToResults(point, i+1);
+            plot(point);
+        }
+        drawCities(map);
+        majorityVoting(lat, long);
+      },
+      error: function(err){
+        console.log(err);
+      }
+    });
+  }
 
   function plot(point){
     tmpPoint = {
@@ -403,21 +359,41 @@ function initialize() {
     };
     countyMarkers.push(tmpPoint);
   }
-  
-  
-//   google.maps.event.addListener(map, 'center_changed', function() {
-//     // 3 seconds after the center of the map has changed, pan back to the
-//     // marker.
-//     window.setTimeout(function() {
-//       map.panTo(marker.getPosition());
-//     }, 3000);
-//   });
+
+  function getDistance(lat1, lon1, lat2, lon2) {
+      var R = 6371; // Radius of the earth in km
+      var dLat = (lat2 - lat1) * Math.PI / 180;  // deg2rad below
+      var dLon = (lon2 - lon1) * Math.PI / 180;
+      var a = 
+         0.5 - Math.cos(dLat)/2 + 
+         Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+         (1 - Math.cos(dLon))/2;
+
+      return (R * 2 * Math.asin(Math.sqrt(a))).toFixed(4);
+  }
+
+  function addPointToResults(point, num){
+    var info = point.title + ', ' + point.state + '<br>';
+    info += 'Latitude: ' + point.lat + '<br>Longitude: ' + point.long + '<br>';
+    info  += 'Distance: ' + getDistance(point.lat, point.long, kMarker.getPosition().lat(), kMarker.getPosition().lng()) + 'km<br><br>';
+    $('.kResults').append(num + '. ' + info);
+  }
+
+  function getCenter(rectangle) {
+    var ne = UIRectangle.getBounds().getNorthEast();
+    var sw = UIRectangle.getBounds().getSouthWest();
+    return [(ne.lat() + sw.lat()) / 2, (ne.lng() + sw.lng()) / 2]
+  }
 
   function updateBounds(event) {
-    var ne = UICircle.getBounds().getNorthEast();
-    var sw = UICircle.getBounds().getSouthWest();
-    console.log(ne.lat() + ' ' + ne.lng());
-    console.log(sw.lat() + ' ' + sw.lng());
+    var ne = UIRectangle.getBounds().getNorthEast();
+    var sw = UIRectangle.getBounds().getSouthWest();
+    console.log('Bounds');
+    console.log('SW Lat: ' + sw.lat());
+    console.log('SW Lng: ' + sw.lng());
+    console.log('NE Lat: ' + ne.lat());
+    console.log('NE Lng: ' + ne.lng());
+    console.log('');
     $.ajax({
        url: "getLocationsInBound",
        type: "GET",
@@ -432,6 +408,7 @@ function initialize() {
             point = response.results[i];
             plot(point);
           }
+          $('.nLocations').html(response.results.length);
           drawCities(map);
           console.log(response);
        },
@@ -440,8 +417,8 @@ function initialize() {
        }
     });
   }
-  
 }
+
 
 
 

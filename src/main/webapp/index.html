@@ -4,18 +4,20 @@
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
     <title>Simple markers</title>
-    <style>
-      html, body, #map-canvas {
-        height: 100%;
-        margin: 0px;
-        padding: 0px
-      }
-    </style>
+    <link rel="stylesheet" href="css/main.css">
     <script src="js/jquery-1.9.1.min.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
     <script src="js/frontEndMaps.js"></script>
   </head>
   <body>
-    <div id="map-canvas"></div>
+      <div class="map" id="map-canvas"></div>
+      <div class="user_options">
+        <div class="header">County Finder</div>
+        <div class="tabs">
+          <div class="tab selected nearest">K Nearest</div><div class="tab bound">Rectange Bound</div>
+        </div>
+        <div class="explanation">
+        </div>
+      </div>
   </body>
 </html>

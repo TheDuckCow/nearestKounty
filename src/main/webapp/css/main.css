@@ -19,20 +19,20 @@ html, body, .map, .user_options {
   width: 20%;
   color: #353535;
   background-color: #fefefe;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .header{
   padding: 12px 8px 16px 8px;
   font-weight: bold;
-  font-size: 22px;
+  font-size: 20px;
 }
 
 .tab{
   width: 50%;
   text-align: center;
   display: inline-block;
-  padding: 12px 0px;
+  padding: 14px 0px;
   margin: 0;
   border-top: 1px solid grey;
   border-bottom: 1px solid grey;
@@ -40,7 +40,7 @@ html, body, .map, .user_options {
 
 .tab:hover, .selected{
   cursor: pointer;
-  background-color: #009bff;
+  background-color: #0068AB;
   color: white;
 }
 
@@ -64,7 +64,7 @@ html, body, .map, .user_options {
 
 input{
   padding: 2px;
-  font-size: 16px;
+  font-size: 14px;
   width: 30%;
 }
 
@@ -77,4 +77,9 @@ input{
 .submitButton{
   margin-bottom: 8px;
   margin-top: 8px;
+}
+
+.kResults{
+  max-height: 264px;
+  overflow-y: scroll; 
 }

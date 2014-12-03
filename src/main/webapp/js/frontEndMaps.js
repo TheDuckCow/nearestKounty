@@ -1,18 +1,3 @@
-$(document).on('ready', function(){
-  // set the initial description
-  kNearestDesciption();
-
-  // tab styling switch
-  $('.tab').on('click', function(){
-    console.log('clicked');
-    var $this = $(this);
-    if (!$this.hasClass('selected')) {
-      $('.selected').removeClass('selected');
-      $this.addClass('selected');
-    }
-  });
-});
-
 // function to set the desciption for K Nearest tab
 function kNearestDesciption(){
   var description;
@@ -20,24 +5,42 @@ function kNearestDesciption(){
   description += " or enter a longitude and latitude below.<br>";
   
   var $inputFields = $('<div>').addClass('inputFields');
-  var $input = $('<div>').addClass('input').html("<span class='inputText'>Longitude:</span> <input class='lngInput'></input><div class='bounds'>[-59.70...-126.29]</div>"); 
+  $input = $('<div>').addClass('input').html("<span class='inputText'>Latitude:</span> <input class='latInput'></input><br><div class='bounds'>[-90...90]</div>"); 
   $inputFields.append($input);
 
-  $input = $('<div>').addClass('input').html("<span class='inputText'>Latitude:</span> <input class='latInput'></input><br><div class='bounds'>[35.86...48.04]</div>"); 
+  var $input = $('<div>').addClass('input').html("<span class='inputText'>Longitude:</span> <input class='lngInput'></input><div class='bounds'>[-180...180]</div>"); 
   $inputFields.append($input);
 
-  $input = $('<div>').addClass('input').html("<span class='inputText'>K Nearest:</span> <input class='k'></input><div class='bounds'>[1...1,000]</div>"); 
+  $input = $('<div>').addClass('input').html("<span class='inputText'>K Nearest:</span> <input class='k'></input><div class='bounds'>[1...100]</div>"); 
   $inputFields.append($input);
 
   var submit;
   submit = "<input class='submitButton' type='submit' value='Update'><hr>";
 
-  $('.explanation').html(description).append($inputFields).append(submit);
+  var results;
+  results = "<div class='kResults'></div>";
+
+  $('.explanation').html(description).append($inputFields).append(submit).append(results);
 }
 
 // function to set the description for Rectangle Bound tab
 function rectangleBoundDescription(){
+  var description;
+  description = "Click the map to select the center of the rectangle";
+  description += " or enter a longitude and latitude below.<br>";
+  
+  var $inputFields = $('<div>').addClass('inputFields');
+  $input = $('<div>').addClass('input').html("<span class='inputText'>Latitude:</span> <input class='latInput'></input><br><div class='bounds'>[-90...90]</div>"); 
+  $inputFields.append($input);
 
+  var $input = $('<div>').addClass('input').html("<span class='inputText'>Longitude:</span> <input class='lngInput'></input><div class='bounds'>[-180...180]</div>"); 
+  $inputFields.append($input);
+
+  var submit;
+  submit = "<input class='submitButton' type='submit' value='Update'><hr>";
+  submit += "<span class='nLocations'>0</span> locations within the bounds.";
+
+  $('.explanation').html(description).append($inputFields).append(submit);
 }
 
 // INITIAL SETUP/global variables
@@ -45,6 +48,8 @@ function rectangleBoundDescription(){
 var countyMarkers = []
 var adjustBoundSW;
 var adjustBoundNE;
+var tab;
+var globalK = 1;
 
 var UIRectangle;
 //var genericMarker;
@@ -62,11 +67,11 @@ function drawCities(map){
     markers[i].setMap(null);
   }
   markers = [];
-  console.log(countyMarkers);
+
   // then, draw all the new ones
   for (var county in countyMarkers){
   
-  	data = "<b>"+countyMarkers[county].zipcode + "</b><hr/>Coordinate: " + countyMarkers[county].center+"<br>Name: "+countyMarkers[county].name;
+  	data = "<b>"+countyMarkers[county].zipcode + ", " + countyMarkers[county].name + "</b><hr>Latitude: " + countyMarkers[county].center.k + "<br>Longitude: " + countyMarkers[county].center.B;
   	var markerOptions = {
   		map: map,
       	//icon: 'images/markerGreen.png',
@@ -83,7 +88,7 @@ function drawCities(map){
     
     markers.push(genericMarker);
     google.maps.event.addListener(genericMarker, 'click', function() {
-	this.info.open(map, this);	  
+	     this.info.open(map, this);	  
     });
   }
 }
@@ -107,7 +112,7 @@ function onItemClick(event, pin, map) {
 ///////////////////////////////////////////////////////////////////////////
 // INITIALIZE FUNCTIOn (contains all)
 function initialize() {
-  
+      //curl -d 'lat=31' -d 'long=-113' -d 'k=10' 0.0.0.0:8080/getNearestKLocationsAtCoord
   // SETUP of map and style
   //42.3581° N, 71.0636° W
   primaryCenter = new google.maps.LatLng(42.3581,-71.0636);
@@ -159,42 +164,98 @@ function initialize() {
 	}
   ]);
   
-  // Setup of the UI controls
-  //var UICont = new UIControls(map);
-  
-  // OTHER STUFF
-  drawCities(map)
-  
-  var circleOptions = {
-      strokeColor: '#FF0000',
-      strokeOpacity: 0.8,
-      strokeWeight: 2,
-      fillColor: '#FF0000',
-      fillOpacity: 0.35,
-      map: map,
-      center: primaryCenter, //LatLng object
-      radius: radius, // in meters
-      editable: true
-    };
-    
   var rectangleOptions = {
       strokeColor: '#FF0000',
       strokeOpacity: 0.8,
       strokeWeight: 2,
       fillColor: '#FF0000',
       fillOpacity: 0.35,
-      map: map,
+      map: null,
       draggable: false,
       bounds: new google.maps.LatLngBounds(
         new google.maps.LatLng(42.33809, -71.11075),
         new google.maps.LatLng(42.3693, -71.0490931)),
       editable: true  
   }
-  adjustBoundNE = [42.3693 - 42.3581, 71.0490931 - 71.0636];
-  adjustBoundSW = [42.33809 - 42.3581, 71.11075 - 71.0636];
+  adjustBoundNE = [42.3693 - 42.3581, 71.11075 - 71.0636];
+  adjustBoundSW = [42.33809 - 42.3581, 71.0490931 - 71.0636];
   //42.3581,-71.0636
   UIRectangle = new google.maps.Rectangle(rectangleOptions);
-  updateBounds();
+
+  var kMarkerOptions = {
+        map: map,
+        position: new google.maps.LatLng(42.3581, -71.0636),
+        clickable: false,
+        icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+    };
+  var kMarker = new google.maps.Marker(kMarkerOptions);
+
+  // set the initial description
+  kNearestDesciption();
+  tab = 'nearest';
+  $('.lngInput').val(-71.0636);
+  $('.latInput').val(42.3581);
+  $('.k').val(globalK);
+
+  // tab styling switch
+  $('.tab').on('click', function(){
+    var $this = $(this);
+    if (!$this.hasClass('selected')) {
+      $('.selected').removeClass('selected');
+      $this.addClass('selected');
+      if ($this.hasClass('nearest')) {
+        tab = 'nearest';
+        kNearestDesciption();
+        var position = kMarker.getPosition();
+        $('.lngInput').val(position.lng());
+        $('.latInput').val(position.lat());
+        $('.k').val(globalK);
+        getNearestK(position.lat(), position.lng(), globalK);
+        countyMarkers = [];
+        drawCities(map);
+        UIRectangle.setMap(null);
+        kMarker.setMap(map);
+      } else {
+        tab = 'bound';
+        rectangleBoundDescription();
+        var center = getCenter(UIRectangle);
+        $('.lngInput').val(center[1]);
+        $('.latInput').val(center[0]);
+        UIRectangle.setMap(map);
+        kMarker.setMap(null);
+        updateBounds();
+      }
+    }
+  });
+
+  // clicking the update button
+  $(document).on('click', '.submitButton', function(){
+    //    map.setCenter(new google.maps.LatLng(primaryCenter.k, primaryCenter.B));
+    var lng = parseFloat($('.lngInput').val());
+    var lat = parseFloat($('.latInput').val());
+    var k   = parseInt($('.k').val());
+
+    // if the lat and lng are in the bounds of the US
+    if (lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90) {
+      map.setCenter(new google.maps.LatLng(lat, lng));
+      if (tab === 'nearest') {
+        if (k >= 1 && k <= 100 || k === 10000) {
+          getNearestK(lat, lng, k);
+          kMarker.setPosition(new google.maps.LatLng(lat, lng));
+          globalK = k;
+        }
+      } else {
+        var lat_low = lat + adjustBoundSW[0] + 0.005;
+        var lat_high = lat + adjustBoundNE[0] + 0.005;
+        var long_low = lng + adjustBoundSW[1] - 0.015;
+        var long_high = lng + adjustBoundNE[1] - 0.015;
+        UIRectangle.setBounds(new google.maps.LatLngBounds(
+            new google.maps.LatLng(lat_low, long_low),
+            new google.maps.LatLng(lat_high, long_high)));
+        updateBounds();
+      }
+    }
+  });
 
   // Add an event listener on the rectangle.
   google.maps.event.addListener(UIRectangle, 'bounds_changed', updateBounds);
@@ -202,15 +263,50 @@ function initialize() {
   
   // single click, change center coordinates/move the 
   google.maps.event.addListener(map, 'click', function(e) {
-    primaryCenter = e.latLng
-    var lat_low = primaryCenter.k + adjustBoundSW[0];
-    var lat_high = primaryCenter.k + adjustBoundNE[0];
-    var long_low = primaryCenter.B + adjustBoundSW[1];
-    var long_high = primaryCenter.B + adjustBoundNE[1];
-    UIRectangle.setBounds(new google.maps.LatLngBounds(
-        new google.maps.LatLng(lat_high, long_high),
-        new google.maps.LatLng(lat_low, long_low)));
+    if (tab === 'bound') {
+      primaryCenter = e.latLng
+      var lat_low = primaryCenter.k + adjustBoundSW[0] + 0.005;
+      var lat_high = primaryCenter.k + adjustBoundNE[0] + 0.005;
+      var long_low = primaryCenter.B + adjustBoundSW[1] - 0.015;
+      var long_high = primaryCenter.B + adjustBoundNE[1] - 0.015;
+      UIRectangle.setBounds(new google.maps.LatLngBounds(
+          new google.maps.LatLng(lat_low, long_low),
+          new google.maps.LatLng(lat_high, long_high)));
+      var center = getCenter(UIRectangle);
+      $('.lngInput').val(center[1]);
+      $('.latInput').val(center[0]);
+    } else {
+      kMarker.setPosition(e.latLng);
+      $('.lngInput').val(e.latLng.B);
+      $('.latInput').val(e.latLng.k);
+      getNearestK(e.latLng.k, e.latLng.B, globalK);
+      kMarker.setPosition(e.latLng);
+    }
   });
+
+  function getNearestK(lat, long, k){
+    $.ajax({
+      url: "getNearestKLocationsAtCoord",
+      type: "GET",
+      data: {lat : lat,
+             long : long,
+             k : k },
+      success: function(response){
+        console.log(response);
+        countyMarkers = [];
+        $('.kResults').html('');
+        for (var i = 0; i < response.results.length; i++){
+            point = response.results[i];
+            addPointToResults(point, i+1);
+            plot(point);
+        }
+        drawCities(map);
+      },
+      error: function(err){
+        console.log(err);
+      }
+    });
+  }
 
   function plot(point){
     tmpPoint = {
@@ -221,10 +317,29 @@ function initialize() {
     countyMarkers.push(tmpPoint);
   }
 
+  function getDistance(lat1, long1, lat2, long2) {
+    var x = (long2 - long1) * Math.cos((lat1 + lat2) / 2);
+    var y = lat2 - lat1;
+    return (Math.sqrt(x*x + y*y) * 6371).toFixed(2);
+  }
+
+  function addPointToResults(point, num){
+    var info = point.title + ', ' + point.state + '<br>';
+    info += 'Latitude: ' + point.lat + '<br>Longitude: ' + point.long + '<br>';
+    info  += 'Distance: ' + getDistance(point.lat, point.long, kMarker.getPosition().lat(), kMarker.getPosition().lng()) + 'km<br><br>';
+    $('.kResults').append(num + '. ' + info);
+  }
+
+  function getCenter(rectangle) {
+    var ne = UIRectangle.getBounds().getNorthEast();
+    var sw = UIRectangle.getBounds().getSouthWest();
+    return [(ne.lat() + sw.lat()) / 2, (ne.lng() + sw.lng()) / 2]
+  }
+
   function updateBounds(event) {
     var ne = UIRectangle.getBounds().getNorthEast();
     var sw = UIRectangle.getBounds().getSouthWest();
-
+    console.log(ne.lng());
     $.ajax({
        url: "getLocationsInBound",
        type: "GET",
@@ -239,6 +354,7 @@ function initialize() {
             point = response.results[i];
             plot(point);
           }
+          $('.nLocations').html(response.results.length);
           drawCities(map);
           console.log(response);
        },

@@ -364,10 +364,13 @@ public class RTree implements Accessor{
 
 			//sort branchlist
             Collections.sort(branchlist, new MinMaxDistSorter());
+            Bound bound = new Bound(-71.09422, -71.09255, 42.3500, 42.35149);
 
             //downwoard pruning
             for( int i = branchlist.size() - 1; i >= k; i--){
                 if (branchlist.get(i).minDist > branchlist.get(k - 1).minmaxDist) {
+                    if(interceptWithBound(bound, branchlist.get(i).node))
+                        System.out.println(branchlist.get(i).node.bound);
                     branchlist.remove(i);
                 }
             }
@@ -378,16 +381,23 @@ public class RTree implements Accessor{
                 double branch_max_dist = (branchlist.size() > k) ? branchlist.get(k).minmaxDist : Double.MAX_VALUE;
                 nearestKNeighborSearch(n.node, p, counties, k, branch_max_dist);
 
+                System.out.println("Max Dist :"+ max_dist);
+                //Bound bound = new Bound(-71.09422, -71.09255, 42.3500, 42.35149);
                 int index = i;
+                //Bound bound = new Bound(-71.09422, -71.09255, 42.3500, 42.35149);
                 //Upward pruning
                 if( counties.size() >= k) {
                     for( int j = 0; j < branchlist.size(); j++) {
                         NodeNN toDelete = branchlist.get(j);
+                        //RNode n = toDelete.node;
                         if (toDelete.minDist > max_dist) {
-                            branchlist.remove(j);
-                            if (i <= j)
-                                i--;
-                            j--;
+                            //if(interceptWithBound(bound, toDelete.node))
+                                //System.out.println(toDelete.node.bound);
+
+                            //if (i <= j)
+                                //i--;
+                            //branchlist.remove(j);
+                            //j--;
                         }
                     }
                 }

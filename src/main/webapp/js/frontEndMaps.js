@@ -25,6 +25,7 @@ function kNearestDesciption(){
 
 // function to set the description for Rectangle Bound tab
 function rectangleBoundDescription(){
+
   var description;
   description = "Click the map to select the center of the rectangle";
   description += " or enter a longitude and latitude below.<br>";
@@ -115,6 +116,13 @@ function initialize() {
       //curl -d 'lat=31' -d 'long=-113' -d 'k=10' 0.0.0.0:8080/getNearestKLocationsAtCoord
   // SETUP of map and style
   //42.3581° N, 71.0636° W
+  $(document).keyup('input', function(event){
+    if(event.keyCode == 13){
+        $(".submitButton").click();
+    }
+  });
+
+
   primaryCenter = new google.maps.LatLng(42.3581,-71.0636);
   var mapOptions = {
     zoom: 13,
@@ -284,6 +292,40 @@ function initialize() {
     }
   });
 
+  function majorityVoting(lat, long){
+    $.ajax({
+      url: "getNearestKLocationsAtCoord",
+      type: "GET",
+      data: {lat : lat,
+             long : long,
+             k : 5 },
+      success: function(response){
+        var foundCounties = {};
+        for (var i = 0; i < response.results.length; i++){
+          var index = response.results[i].title + ', ' + response.results[i].state;
+          if (foundCounties[index] === undefined) {
+            foundCounties[index] = 1;
+          } else {
+            foundCounties[index] = foundCounties[index] + 1;
+          }
+        }
+        var majority = null;
+        var max = 0;
+        for (var key in foundCounties){
+          if (foundCounties[key] > max){
+            max = foundCounties[key];
+            majority = key;
+          }
+        }
+        console.log(key);
+        $('.kResults').prepend('<b>Majority Voting</b><br>' + key + '<br><br>');
+      },
+      error: function(err){
+        console.log(err);
+      }
+    });
+  }
+
   function getNearestK(lat, long, k){
     $.ajax({
       url: "getNearestKLocationsAtCoord",
@@ -294,13 +336,14 @@ function initialize() {
       success: function(response){
         console.log(response);
         countyMarkers = [];
-        $('.kResults').html('');
+        $('.kResults').html('<b>Nearest Points</b><br>');
         for (var i = 0; i < response.results.length; i++){
             point = response.results[i];
             addPointToResults(point, i+1);
             plot(point);
         }
         drawCities(map);
+        majorityVoting(lat, long);
       },
       error: function(err){
         console.log(err);
@@ -317,10 +360,16 @@ function initialize() {
     countyMarkers.push(tmpPoint);
   }
 
-  function getDistance(lat1, long1, lat2, long2) {
-    var x = (long2 - long1) * Math.cos((lat1 + lat2) / 2);
-    var y = lat2 - lat1;
-    return (Math.sqrt(x*x + y*y) * 6371).toFixed(2);
+  function getDistance(lat1, lon1, lat2, lon2) {
+      var R = 6371; // Radius of the earth in km
+      var dLat = (lat2 - lat1) * Math.PI / 180;  // deg2rad below
+      var dLon = (lon2 - lon1) * Math.PI / 180;
+      var a = 
+         0.5 - Math.cos(dLat)/2 + 
+         Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+         (1 - Math.cos(dLon))/2;
+
+      return (R * 2 * Math.asin(Math.sqrt(a))).toFixed(4);
   }
 
   function addPointToResults(point, num){
@@ -364,6 +413,7 @@ function initialize() {
     });
   }
 }
+
 
 
 

@@ -1,4 +1,4 @@
-package nearestFinder;
+
 
 import java.awt.Point;
 import java.awt.geom.Point2D;
@@ -489,6 +489,8 @@ public class RTree implements Accessor{
         }
     }
 
+    County temp_count = null;
+
     public void readCountyFromFile(String dataFileName) throws NumberFormatException, IOException {
 
 
@@ -522,7 +524,12 @@ public class RTree implements Accessor{
             /**
              * Printing the value read from file to the console
              */
-            insertCounty(new County(lon, lat, title, state));
+            if (temp_count != null){
+                if(temp_count.lon != lon && temp_count.lat != lat) {
+                    temp_count = new County(lon, lat, title, state);
+                    insertCounty(temp_count);
+                }
+            }
         }
         bReader.close();
     }

@@ -1,0 +1,80 @@
+html{
+  font-family: Tahoma, Geneva, sans-serif
+}
+
+html, body, .map, .user_options {
+  height: 100%;
+  margin: 0px;
+  padding: 0px
+}
+
+.map{
+  position: absolute;
+  display: inline-block;
+  width: 80%;
+}
+
+.user_options{
+  float: right;
+  width: 20%;
+  color: #353535;
+  background-color: #fefefe;
+  font-size: 18px;
+}
+
+.header{
+  padding: 12px 8px 16px 8px;
+  font-weight: bold;
+  font-size: 22px;
+}
+
+.tab{
+  width: 50%;
+  text-align: center;
+  display: inline-block;
+  padding: 12px 0px;
+  margin: 0;
+  border-top: 1px solid grey;
+  border-bottom: 1px solid grey;
+}
+
+.tab:hover, .selected{
+  cursor: pointer;
+  background-color: #009bff;
+  color: white;
+}
+
+.explanation{
+  padding: 12px 8px;
+  text-align: left;
+}
+
+.inputFields{
+  padding-top: 8px;
+}
+
+.inputText{
+  display: inline-block;
+  width: 38%;
+}
+
+.input{
+  padding: 4px;
+}
+
+input{
+  padding: 2px;
+  font-size: 16px;
+  width: 30%;
+}
+
+.bounds{
+  font-size: 16px;
+  color: grey;
+  margin-bottom: 6px;
+}
+
+.submitButton{
+  margin-bottom: 8px;
+  margin-top: 8px;
+}

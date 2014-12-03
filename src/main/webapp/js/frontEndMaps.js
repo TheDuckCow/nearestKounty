@@ -1,31 +1,52 @@
+$(document).on('ready', function(){
+  // set the initial description
+  kNearestDesciption();
+
+  // tab styling switch
+  $('.tab').on('click', function(){
+    console.log('clicked');
+    var $this = $(this);
+    if (!$this.hasClass('selected')) {
+      $('.selected').removeClass('selected');
+      $this.addClass('selected');
+    }
+  });
+});
+
+// function to set the desciption for K Nearest tab
+function kNearestDesciption(){
+  var description;
+  description = "Click the map to select the starting reference point";
+  description += " or enter a longitude and latitude below.<br>";
+  
+  var $inputFields = $('<div>').addClass('inputFields');
+  var $input = $('<div>').addClass('input').html("<span class='inputText'>Longitude:</span> <input class='lngInput'></input><div class='bounds'>[-59.70...-126.29]</div>"); 
+  $inputFields.append($input);
+
+  $input = $('<div>').addClass('input').html("<span class='inputText'>Latitude:</span> <input class='latInput'></input><br><div class='bounds'>[35.86...48.04]</div>"); 
+  $inputFields.append($input);
+
+  $input = $('<div>').addClass('input').html("<span class='inputText'>K Nearest:</span> <input class='k'></input><div class='bounds'>[1...1,000]</div>"); 
+  $inputFields.append($input);
+
+  var submit;
+  submit = "<input class='submitButton' type='submit' value='Update'><hr>";
+
+  $('.explanation').html(description).append($inputFields).append(submit);
+}
+
+// function to set the description for Rectangle Bound tab
+function rectangleBoundDescription(){
+
+}
+
 // INITIAL SETUP/global variables
 
 var countyMarkers = []
 var adjustBoundSW;
 var adjustBoundNE;
 
-var tmpPoint = {
-  center: new google.maps.LatLng(41.878113, -87.629798),
-  zipcode: 2714856,
-  name:"Chicago"
-};
-countyMarkers.push(tmpPoint);
-tmpPoint = {
-  center: new google.maps.LatLng(40.7127, -74.0059),
-  zipcode: 3857799,
-  name:"New York"
-};
-countyMarkers.push(tmpPoint);
-
-tmpPoint = {
-  center: new google.maps.LatLng(49.25, -123.1),
-  zipcode: 603502,
-  name:"Vancouver"
-};
-countyMarkers.push(tmpPoint);
-
-
-var UICircle;
+var UIRectangle;
 //var genericMarker;
 var markers = []; 	// reference container for markers
 
@@ -33,184 +54,6 @@ var markers = []; 	// reference container for markers
 var primaryCenter;	// long/lat of center of circle
 var currentK = 20;		// current "k" closest"
 var radius = 500000;			// radius of the circle
-//var infowindow;
-
-
-///////////////////////////////////////////////////////////////////////////
-// BACKEND stuff
-function backendSendK(){
-	console.log("Sending K: "+currentK+", at "+primaryCenter);
-	
-	// clear all values of "countyMarkers" and load in new values from backend
-	
-	// radius = //get updated radius from backend
-	
-	UICircle.setRadius(radius);
-}
-
-function backendSendRadius(){
-	console.log("Sending current radius: "+radius+", at "+primaryCenter);
-	
-	UICircle.setRadius(radius); // creates a loop!
-	//UICircle.set ('radius',radius);
-	
-	// clear all values of "countyMarkers" and load in new values from backend
-	// currentK = //get updated K from backend
-	
-}
-
-///////////////////////////////////////////////////////////////////////////
-// UI button setup
-function UIControls(map) {
-  
-  
-	// Create a div to hold everything else
-	//var outterDiv = document.createElement('DIV');
-	var controlDiv = document.createElement('DIV');
-	controlDiv.id = "controls";
-	controlDiv.style.padding = '5px';
-	controlDiv.style.backgroundColor = 'white';
-	controlDiv.style.borderStyle = 'solid';
-	controlDiv.style.borderWidth = '1px';
-	
-	
-	// Create a label
-	var infoLabel = document.createElement('label');
-	infoLabel.innerHTML = '<b>County Finder</b><br>Click the map to select the starting reference point. <br>Set the number of counties you would like returned below.<br>K reference points: ';
-	infoLabel.setAttribute("for","infoLable");
-	
-		   
-	// Create an dropdown list
-  var dropDownList = document.createElement('select');
-  dropDownList.setAttribute('class', 'k');
-
-  for(var i = 1; i < 11; i++) {
-    var opt = document.createElement("option");
-    opt.value= i;
-    opt.innerHTML = i; // whatever property it has
-
-    // then append it to the select element
-    dropDownList.appendChild(opt);
-  }
-
-
-	// // Create a label
-	// var controlLabel = document.createElement('label');
-	// controlLabel.innerHTML = '<br>Find nearest k counties, k=';
-	// controlLabel.setAttribute("for","some-information");
-
-	// // Create a button to send the information
-	// var controlButton = document.createElement('a');
-	// controlButton.innerHTML = ' Press to set K!';
-	
-	
-	// // second row!
-	// // Create an input field
-	// var controlInputR = document.createElement('input');
-	// controlInputR.id = "radius-information";
-	// controlInputR.name = "radius-information";
-	// controlInputR.value = radius;
-
-	// // Create a label
-	// var controlLabelR = document.createElement('label');
-	// controlLabelR.innerHTML = '<br>Radius, r(meters)=';
-	// controlLabelR.setAttribute("for","radius-information");
-
-	// // Create a button to send the information
-	// var controlButtonR = document.createElement('a');
-	// controlButtonR.innerHTML = ' Press to set Radius!';
-
-
-	// Append everything to the wrapper div
-	controlDiv.appendChild(infoLabel);
-	controlDiv.appendChild(dropDownList);
-	// controlDiv.appendChild(controlInput);
-	// controlDiv.appendChild(controlButton);
-	// controlDiv.appendChild(controlLabelR);
-	// controlDiv.appendChild(controlInputR);
-	// controlDiv.appendChild(controlButtonR);
-	
-	// ie when you click on "send it" in the top right corner
-	var onClickK = function() {
-		currentK=controlInput.value;
-		console.log('BUTTON: Setting new k value of '+currentK);
-		
-		// pass to back-end stuff here?
-		backendSendK();
-  		drawCities(map);
-		
-	};
-	//google.maps.event.addDomListener(controlButton, 'click', onClickK);
-	
-	// ie when you click on "send it" in the top right corner
-	var onClickR = function() {
-		radius=Number(controlInputR.value);
-		console.log('BUTTON: Setting new radius value: '+radius);
-		
-		// pass to back-end stuff here?
-		backendSendRadius();
-  		drawCities(map);
-		
-	};
-	
-	//google.maps.event.addDomListener(controlButtonR, 'click', onClickR);
-	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDiv);
-	
-	
-	
-  
-  /*  
-  // DIV for text input, far right
-  var controlDiv2 = document.createElement('DIV');
-  controlDiv2.style.padding = '5px';
-
-  var controlInput = document.createElement('INPUT');
-  controlInput.name = "nearestKinput";
-  controlInput.type = "text";
-  controlInput.style.borderWidth = '2px';
-  controlDiv2.appendChild(controlInput);
-
-  //control javascript (e.g. any handlers that you need)
-  var myControl = UInearestK(controlDiv2)
-  
-  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDiv2);
-  
-  
-  // SETUP for the text "Find nearest {integer, 0-999}"
-  controlDiv = document.createElement('div');
-  controlDiv.style.padding = '5px';
-
-  // Set CSS for the control border
-  var controlUI = document.createElement('div');
-  controlUI.style.backgroundColor = 'white';
-  controlUI.style.borderStyle = 'solid';
-  controlUI.style.borderWidth = '1px';
-  controlUI.style.cursor = 'pointer';
-  controlUI.style.textAlign = 'center';
-  controlUI.title = 'Click to set the map to Home';
-  controlDiv.appendChild(controlUI);
-
-  // Set CSS for the control interior
-  var controlText = document.createElement('div');
-  controlText.style.fontFamily = 'Arial,sans-serif';
-  controlText.style.fontSize = '12px';
-  controlText.style.paddingLeft = '4px';
-  controlText.style.paddingRight = '4px';
-  controlText.innerHTML = 'Find nearest {integer, 0-999}:';
-  controlUI.appendChild(controlText);
-  
-  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDiv);
-
-
-  // Setup map for click listeners // NO listener for this, just text UI object
-  //google.maps.event.addDomListener(controlUI, 'click', function() {
-  //  map.setCenter(chicago)
-  //});
-  
-  
-  */
-}
-
 
 // function for refreshing the page with new markers, only one to drop markers
 function drawCities(map){
@@ -317,8 +160,7 @@ function initialize() {
   ]);
   
   // Setup of the UI controls
-  var UICont = new UIControls(map);
-
+  //var UICont = new UIControls(map);
   
   // OTHER STUFF
   drawCities(map)
@@ -351,48 +193,23 @@ function initialize() {
   adjustBoundNE = [42.3693 - 42.3581, 71.0490931 - 71.0636];
   adjustBoundSW = [42.33809 - 42.3581, 71.11075 - 71.0636];
   //42.3581,-71.0636
-  UICircle = new google.maps.Rectangle(rectangleOptions);
+  UIRectangle = new google.maps.Rectangle(rectangleOptions);
   updateBounds();
 
   // Add an event listener on the rectangle.
-  google.maps.event.addListener(UICircle, 'bounds_changed', updateBounds);
-  
-  
-  // LISTENERS
-  
-  google.maps.event.addListener(UICircle, 'radius_changed', function() {
-  	if (radius != UICircle.getRadius()){
-  		radius = UICircle.getRadius();
-  	
-  		// pass to back-end stuff here?
-  		backendSendRadius();
-  		drawCities(map);
-  	}
-  });
-  
-  
-	google.maps.event.addListener(UICircle, 'center_changed', function() {
-	primaryCenter = UICircle.center;
-  	
-  	// pass to back-end stuff here?
-  	backendSendRadius();
-  	drawCities(map);
-  });
+  google.maps.event.addListener(UIRectangle, 'bounds_changed', updateBounds);
   
   
   // single click, change center coordinates/move the 
   google.maps.event.addListener(map, 'click', function(e) {
-    console.log('trying to set center');
     primaryCenter = e.latLng
-    var oldBound = UICircle.getBounds();
-    oldBound.Ea.k = primaryCenter.k + adjustBoundSW[0];
-    oldBound.Ea.j = primaryCenter.k + adjustBoundNE[0];
-    oldBound.va.k = primaryCenter.B + adjustBoundSW[1];
-    oldBound.va.j = primaryCenter.B + adjustBoundNE[1];
-    UICircle.setBounds(oldBound);
-    // pass to back-end stuff here?
-    drawCities(map)
-    
+    var lat_low = primaryCenter.k + adjustBoundSW[0];
+    var lat_high = primaryCenter.k + adjustBoundNE[0];
+    var long_low = primaryCenter.B + adjustBoundSW[1];
+    var long_high = primaryCenter.B + adjustBoundNE[1];
+    UIRectangle.setBounds(new google.maps.LatLngBounds(
+        new google.maps.LatLng(lat_high, long_high),
+        new google.maps.LatLng(lat_low, long_low)));
   });
 
   function plot(point){
@@ -403,21 +220,11 @@ function initialize() {
     };
     countyMarkers.push(tmpPoint);
   }
-  
-  
-//   google.maps.event.addListener(map, 'center_changed', function() {
-//     // 3 seconds after the center of the map has changed, pan back to the
-//     // marker.
-//     window.setTimeout(function() {
-//       map.panTo(marker.getPosition());
-//     }, 3000);
-//   });
 
   function updateBounds(event) {
-    var ne = UICircle.getBounds().getNorthEast();
-    var sw = UICircle.getBounds().getSouthWest();
-    console.log(ne.lat() + ' ' + ne.lng());
-    console.log(sw.lat() + ' ' + sw.lng());
+    var ne = UIRectangle.getBounds().getNorthEast();
+    var sw = UIRectangle.getBounds().getSouthWest();
+
     $.ajax({
        url: "getLocationsInBound",
        type: "GET",
@@ -440,7 +247,6 @@ function initialize() {
        }
     });
   }
-  
 }
 
 

@@ -235,13 +235,19 @@ public class RTree implements Accessor{
 
     private void getInnerLocations(Node inNode, Bound myBound, ArrayList<County> nearbyCounties){
         RNode node = ((RNode) inNode);
+        if (node.nodes.size() == 0) {
+            return;
+        }
 
         if (node.nodes.get(0) instanceof County)
         {
             for (Node n : node.nodes){
                 County county = (County) n;
-                if (isWithinBound(myBound,county))
+                if (isWithinBound(myBound,county)){
+                    //System.out.print("Got");
+                    //System.out.println(county);
                     nearbyCounties.add(county);
+                }
             }
         }
         else
@@ -249,6 +255,7 @@ public class RTree implements Accessor{
             for(Node n: node.nodes) {
                 RNode subNode = (RNode) n;
                 if (interceptWithBound(myBound, subNode.bound)){
+                    //System.out.println("Getting into" + subNode.bound + "With minDist: " + knnMinDist(new Point2D.Double(-71.09387040138245,  42.34990180474362), subNode.bound));
                     getInnerLocations(subNode, myBound, nearbyCounties);
                 }
             }
@@ -365,13 +372,10 @@ public class RTree implements Accessor{
 
 			//sort branchlist
             Collections.sort(branchlist, new MinMaxDistSorter());
-            Bound bound = new Bound(-71.09422, -71.09255, 42.3500, 42.35149);
 
             //downwoard pruning
             for( int i = branchlist.size() - 1; i >= k; i--){
                 if (branchlist.get(i).minDist > branchlist.get(k - 1).minmaxDist) {
-                    if(interceptWithBound(bound, branchlist.get(i).node))
-                        System.out.println(branchlist.get(i).node.bound);
                     branchlist.remove(i);
                 }
             }
@@ -382,27 +386,18 @@ public class RTree implements Accessor{
                 double branch_max_dist = (branchlist.size() > k) ? branchlist.get(k).minmaxDist : Double.MAX_VALUE;
                 nearestKNeighborSearch(n.node, p, counties, k, branch_max_dist);
 
-                System.out.println("Max Dist :"+ max_dist);
-                //Bound bound = new Bound(-71.09422, -71.09255, 42.3500, 42.35149);
-                int index = i;
-                //Bound bound = new Bound(-71.09422, -71.09255, 42.3500, 42.35149);
                 //Upward pruning
                 if( counties.size() >= k) {
                     for( int j = 0; j < branchlist.size(); j++) {
                         NodeNN toDelete = branchlist.get(j);
-                        //RNode n = toDelete.node;
                         if (toDelete.minDist > max_dist) {
-                            //if(interceptWithBound(bound, toDelete.node))
-                                //System.out.println(toDelete.node.bound);
-
-                            //if (i <= j)
-                                //i--;
-                            //branchlist.remove(j);
-                            //j--;
+                            if (j <= i)
+                                i--;
+                            branchlist.remove(j);
+                            j--;
                         }
                     }
                 }
-                i = index;
             }
         }
     }
@@ -489,8 +484,6 @@ public class RTree implements Accessor{
         }
     }
 
-    County temp_count = null;
-
     public void readCountyFromFile(String dataFileName) throws NumberFormatException, IOException {
 
 
@@ -521,15 +514,8 @@ public class RTree implements Accessor{
             double lat = Double.parseDouble(datavalue[2]);
             double lon = Double.parseDouble(datavalue[3]);
 
-            /**
-             * Printing the value read from file to the console
-             */
-            if (temp_count != null){
-                if(temp_count.lon != lon && temp_count.lat != lat) {
-                    temp_count = new County(lon, lat, title, state);
-                    insertCounty(temp_count);
-                }
-            }
+            insertCounty(new County(lon, lat, title, state));
+
         }
         bReader.close();
     }

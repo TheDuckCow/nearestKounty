@@ -50,7 +50,7 @@ public class CommandLine {
             }
            
         }
-        
+        in.close();
     	return;
        
 	}
@@ -58,13 +58,53 @@ public class CommandLine {
 	//executes the knearestsearch function and prints the results
 	public static void cmdKNearest(RTree tree, Scanner inKN)
 	{
-  //      Scanner inKN = new Scanner(System.in);
 		System.out.print("Enter latitude (double): ");
+		//input validation for double
+		while (!inKN.hasNextDouble()) {
+            System.out.println("That's not a double value!");
+            System.out.print("Enter latitude (double): ");
+            inKN.next();
+        }
     	double lat = inKN.nextDouble();
+    	
     	System.out.print("Enter longitude (double): ");
+    	//input validation double
+		while (!inKN.hasNextDouble()) {
+            System.out.println("That's not a double value!");
+            System.out.print("Enter longitude (double): ");
+            inKN.next();
+        }
     	double lon = inKN.nextDouble();
-    	System.out.print("Enter number of neighbors (int): ");
-    	int k = inKN.nextInt();
+    	
+    	int k;
+    	
+    	System.out.print("Enter number of neighbors (positive int): ");
+    	//input validation for positive int
+		while (true) {
+			if (inKN.hasNextInt())
+			{
+				k = inKN.nextInt();
+				if (k<=0)
+				{
+					System.out.println("That's not a positive integer!");
+					System.out.print("Enter number of neighbors (positive int): ");
+				}
+				else
+				{
+					break;
+				}
+
+			}
+			else
+			{
+	            System.out.println("That's not an integer value!");
+	            System.out.print("Enter number of neighbors (positive int): ");
+	            inKN.next();
+			}
+
+        }
+
+    	//print
     	inKN.nextLine();
     	
     	ArrayList<County> result = tree.getNearestKLocationsAtPoint(lon, lat, k);
@@ -83,16 +123,42 @@ public class CommandLine {
 	//executes the withinboundsearch function and prints the results
 	public static void cmdBound(RTree tree, Scanner inB)
 	{
-	//	Scanner inB = new Scanner(System.in);
-		System.out.print("Enter longitude for lower left bound: ");
+		System.out.print("Enter longitude for lower left bound (double): ");
+		//input validation for double
+		while (!inB.hasNextDouble()) {
+            System.out.println("That's not a double value!");
+            System.out.print("Enter longitude for lower left bound (double): ");
+            inB.next();
+        }
     	double lon1 = inB.nextDouble();
-    	System.out.print("Enter latitude for lower left bound: ");
+    	
+    	System.out.print("Enter latitude for lower left bound (double): ");
+    	//input validation for double
+		while (!inB.hasNextDouble()) {
+            System.out.println("That's not a double value!");
+            System.out.print("Enter latitude for lower left bound (double): ");
+            inB.next();
+        }
     	double lat1 = inB.nextDouble();
 
-    	System.out.print("Enter longitude for upper right bound: ");
+    	System.out.print("Enter longitude for upper right bound (double): ");
+    	//input validation for double
+		while (!inB.hasNextDouble()) {
+            System.out.println("That's not a double value!");
+            System.out.print("Enter longitude for upper right bound (double): ");
+            inB.next();
+        }
     	double lon2 = inB.nextDouble();
-    	System.out.print("Enter latitude for upper right bound: ");
+    	
+    	System.out.print("Enter latitude for upper right bound (double): ");
+    	//input validation for double
+		while (!inB.hasNextDouble()) {
+            System.out.println("That's not a double value!");
+            System.out.print("Enter latitude for upper right bound (double): ");
+            inB.next();
+        }
     	double lat2 = inB.nextDouble();
+    	
     	inB.nextLine();
     	
         System.out.println(" ");

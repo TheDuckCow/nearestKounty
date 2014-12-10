@@ -20,6 +20,7 @@ html, body, .map, .user_options {
   color: #353535;
   background-color: #fefefe;
   font-size: 16px;
+  overflow: auto;
 }
 
 .header{
@@ -80,6 +81,6 @@ input{
 }
 
 .kResults{
-  max-height: 264px;
-  overflow-y: scroll; 
+  height: 100%;
+  overflow-y: auto; 
 }

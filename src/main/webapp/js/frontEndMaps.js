@@ -317,8 +317,7 @@ function initialize() {
             majority = key;
           }
         }
-        console.log(key);
-        $('.kResults').prepend('<b>Majority Voting</b><br>' + key + '<br><br>');
+        $('.kResults').prepend('<b>Majority Voting</b><br>' + majority + '<br><br>');
       },
       error: function(err){
         console.log(err);

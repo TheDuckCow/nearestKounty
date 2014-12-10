@@ -15,12 +15,16 @@ Then run it with:
 ## Running the command line interface
 
 To run the command line interface run the Tester.java class within the nearestFinder package.
+
 The java files are located in "./src/main/java/nearestFinder"
+
 Example:
 
 
 knearest: Searches for the k nearest neighbors of a query point
+
 bound: Searches for all points within a specified bounding rectangle
+
 quit: Exits the command line interface
 
 ENTER COMMAND...

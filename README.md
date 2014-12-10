@@ -11,4 +11,8 @@ First build with:
 Then run it with:
 
     $java -cp target/classes:target/dependency/* com.example.Main
+    
+## Command line interface 
+
+To run the command line interface run the Tester.java class within the nearestFinder package.
 

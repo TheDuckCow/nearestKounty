@@ -1,8 +1,8 @@
-# Embedded Jetty template application
+## Live application
 
-This is a template for a web application that uses embedded Jetty. The sample code consists of a JSP (this page) and a simple servlet.
+http://ec2-54-149-48-66.us-west-2.compute.amazonaws.com:8080
 
-## Running the application locally
+## Running the server locally
 
 First build with:
 
@@ -12,7 +12,7 @@ Then run it with:
 
     $java -cp target/classes:target/dependency/* com.example.Main
     
-## Command line interface 
+## Running the command line interface
 
-To run the command line interface run the Tester.java class within the nearestFinder package.
+To run the command line interface run the Tester.java class within the src/main/java/nearestFinder package.
 

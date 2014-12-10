@@ -11,7 +11,7 @@ function kNearestDesciption(){
   var $input = $('<div>').addClass('input').html("<span class='inputText'>Longitude:</span> <input class='lngInput'></input><div class='bounds'>[-180...180]</div>"); 
   $inputFields.append($input);
 
-  $input = $('<div>').addClass('input').html("<span class='inputText'>K Nearest:</span> <input class='k'></input><div class='bounds'>[1...10,000]</div>"); 
+  $input = $('<div>').addClass('input').html("<span class='inputText'>K Nearest:</span> <input class='k'></input><div class='bounds'>[1...1,000]</div>"); 
   $inputFields.append($input);
 
   var submit;
@@ -247,7 +247,7 @@ function initialize() {
     if (lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90) {
       map.setCenter(new google.maps.LatLng(lat, lng));
       if (tab === 'nearest') {
-        if (k >= 1 && k <= 10000) {
+        if (k >= 1 && k <= 1000 || k === 10000) {
           getNearestK(lat, lng, k);
           kMarker.setPosition(new google.maps.LatLng(lat, lng));
           globalK = k;

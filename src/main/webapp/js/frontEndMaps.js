@@ -273,10 +273,10 @@ function initialize() {
   google.maps.event.addListener(map, 'click', function(e) {
     if (tab === 'bound') {
       primaryCenter = e.latLng
-      var lat_low = primaryCenter.k + adjustBoundSW[0] + 0.005;
-      var lat_high = primaryCenter.k + adjustBoundNE[0] + 0.005;
-      var long_low = primaryCenter.B + adjustBoundSW[1] - 0.015;
-      var long_high = primaryCenter.B + adjustBoundNE[1] - 0.015;
+      var lat_low = primaryCenter.lat() + adjustBoundSW[0] + 0.005;
+      var lat_high = primaryCenter.lat() + adjustBoundNE[0] + 0.005;
+      var long_low = primaryCenter.lng() + adjustBoundSW[1] - 0.015;
+      var long_high = primaryCenter.lng() + adjustBoundNE[1] - 0.015;
       UIRectangle.setBounds(new google.maps.LatLngBounds(
           new google.maps.LatLng(lat_low, long_low),
           new google.maps.LatLng(lat_high, long_high)));
@@ -285,9 +285,10 @@ function initialize() {
       $('.latInput').val(center[0]);
     } else {
       kMarker.setPosition(e.latLng);
-      $('.lngInput').val(e.latLng.B);
-      $('.latInput').val(e.latLng.k);
-      getNearestK(e.latLng.k, e.latLng.B, globalK);
+      console.log(e.latLng);
+      $('.lngInput').val(e.latLng.lng());
+      $('.latInput').val(e.latLng.lat());
+      getNearestK(e.latLng.lat(), e.latLng.lng(), globalK);
       kMarker.setPosition(e.latLng);
     }
   });

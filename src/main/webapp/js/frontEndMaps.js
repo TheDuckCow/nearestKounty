@@ -286,7 +286,6 @@ function initialize() {
     } else {
       kMarker.setPosition(e.latLng);
       console.log(e.latLng);
-      console.long('');
       $('.lngInput').val(e.latLng.lng());
       $('.latInput').val(e.latLng.lat());
       getNearestK(e.latLng.lat(), e.latLng.lng(), globalK);
